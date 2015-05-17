@@ -14,7 +14,9 @@ add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper )
 
 add_library( ${PROJECT_NAME} SHARED ${SOURCE_FILES} )
 set_target_properties( ${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node" )
+
 target_link_libraries( ${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc-sdk/lib/msvc/libvlc.lib )
+target_link_libraries( ${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper /Applications/VLC.app/Contents//MacOS/lib/libvlc.dylib )
 
 #get_cmake_property( _variableNames VARIABLES )
 #foreach( _variableName ${_variableNames} )
