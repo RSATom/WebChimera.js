@@ -2,6 +2,8 @@ cmake_minimum_required( VERSION 2.8 )
 
 project( WebChimera.js )
 
+add_definitions( -std=c++11 )
+
 file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     src/[^.]*.cpp
     src/[^.]*.h
