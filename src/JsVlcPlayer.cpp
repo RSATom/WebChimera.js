@@ -30,7 +30,7 @@ JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Function>& renderCallback ) :
     uv_async_init( loop, &_frameUpdatedAsync,
         [] ( uv_async_t* handle ) {
             if( handle->data )
-                reinterpret_cast<JsVlcPlayer*>( handle->data )->frameUpdated() ;
+                reinterpret_cast<JsVlcPlayer*>( handle->data )->frameUpdated();
         }
     );
 }

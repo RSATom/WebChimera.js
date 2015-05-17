@@ -29,7 +29,7 @@ private:
     void video_cleanup_cb() override;
 
     void* video_lock_cb( void** planes ) override;
-    void video_unlock_cb( void* picture, void *const *planes ) override;
+    void video_unlock_cb( void* picture, void *const * planes ) override;
     void video_display_cb( void* picture ) override;
 
 private:
