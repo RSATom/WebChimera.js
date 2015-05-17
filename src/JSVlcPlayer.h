@@ -51,7 +51,6 @@ private:
     std::vector<char> _tmpFrameBuffer;
 
     v8::Persistent<v8::Object> _jsFrameBuffer;
-    unsigned _jsFrameBufferSize;
     char* _jsRawFrameBuffer;
 
     v8::Persistent<v8::Function> _jsRenderCallback;

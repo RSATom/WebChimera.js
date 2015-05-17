@@ -4,7 +4,7 @@ v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
 
 JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Function>& renderCallback ) :
     _libvlc( nullptr ), _frameWidth( 0 ), _frameHeight( 0 ),
-    _jsFrameBufferSize( 0 ), _jsRawFrameBuffer( nullptr )
+    _jsRawFrameBuffer( nullptr )
 {
     _jsRenderCallback.Reset( v8::Isolate::GetCurrent(), renderCallback );
 
@@ -105,7 +105,8 @@ void JsVlcPlayer::setupBuffer()
     if( 0 == _frameWidth || 0 == _frameHeight )
         return;
 
-    _jsFrameBufferSize = _frameWidth * _frameHeight * vlc::DEF_PIXEL_BYTES;
+    const unsigned frameBufferSize =
+        _frameWidth * _frameHeight * vlc::DEF_PIXEL_BYTES;
 
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
@@ -118,7 +119,7 @@ void JsVlcPlayer::setupBuffer()
                                  "Uint8Array",
                                  v8::String::kInternalizedString ) );
     Local<Value> argv[] =
-        { Integer::NewFromUnsigned( isolate, _jsFrameBufferSize ) };
+        { Integer::NewFromUnsigned( isolate, frameBufferSize ) };
     Local<Object> array =
         Handle<Function>::Cast( abv )->NewInstance( 1, argv );
 
