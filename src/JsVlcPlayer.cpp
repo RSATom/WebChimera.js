@@ -130,7 +130,6 @@ void JsVlcPlayer::initJsApi()
     ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlayer" ) );
     ct->InstanceTemplate()->SetInternalFieldCount( 1 );
 
-    NODE_SET_PROTOTYPE_METHOD( ct, "getVideoFrame", jsGetVideoFrame );
     NODE_SET_PROTOTYPE_METHOD( ct, "play", jsPlay );
     NODE_SET_PROTOTYPE_METHOD( ct, "stop", jsStop );
 
@@ -161,22 +160,6 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
             constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ),
                                       argv ) );
     }
-}
-
-void JsVlcPlayer::jsGetVideoFrame( const v8::FunctionCallbackInfo<v8::Value>& args )
-{
-    using namespace v8;
-
-    if( args.Length() != 0 )
-        return;
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    args.GetReturnValue().Set(
-        v8::Local<Object>::New( isolate, jsPlayer->_jsFrameBuffer ) );
 }
 
 void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )

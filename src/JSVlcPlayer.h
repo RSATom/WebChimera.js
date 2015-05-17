@@ -15,8 +15,6 @@ public:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
 private:
-    static void jsGetVideoFrame( const v8::FunctionCallbackInfo<v8::Value>& args );
-
     static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
     static void jsStop( const v8::FunctionCallbackInfo<v8::Value>& args );
 
