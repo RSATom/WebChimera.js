@@ -8,7 +8,7 @@
 #include <libvlc_wrapper/vlc_vmem.h>
 
 class JsVlcPlayer :
-    public node::ObjectWrap, private vlc::vmem
+    public node::ObjectWrap, private vlc::basic_vmem_wrapper
 {
 public:
     static void initJsApi();
@@ -22,11 +22,15 @@ private:
     JsVlcPlayer( const v8::Local<v8::Function>& renderCallback );
     ~JsVlcPlayer();
 
-
 private:
-    void on_format_setup() override;
-    void on_frame_ready( const std::vector<char>* ) override;
-    void on_frame_cleanup() override;
+    unsigned video_format_cb( char* chroma,
+                              unsigned* width, unsigned* height,
+                              unsigned* pitches, unsigned* lines ) override;
+    void video_cleanup_cb() override;
+
+    void* video_lock_cb( void** planes ) override;
+    void video_unlock_cb( void* picture, void *const *planes ) override;
+    void video_display_cb( void* picture ) override;
 
 private:
     void setupBuffer();
@@ -43,6 +47,8 @@ private:
 
     unsigned _frameWidth;
     unsigned _frameHeight;
+
+    std::vector<char> _tmpFrameBuffer;
 
     v8::Persistent<v8::Object> _jsFrameBuffer;
     unsigned _jsFrameBufferSize;

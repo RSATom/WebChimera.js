@@ -11,7 +11,7 @@ JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Function>& renderCallback ) :
     _libvlc = libvlc_new( 0, nullptr );
     assert( _libvlc );
     if( _player.open( _libvlc ) ) {
-        vlc::vmem::open( &_player.basic_player() );
+        vlc::basic_vmem_wrapper::open( &_player.basic_player() );
     } else {
         assert( false );
     }
@@ -37,7 +37,7 @@ JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Function>& renderCallback ) :
 
 JsVlcPlayer::~JsVlcPlayer()
 {
-    vlc::vmem::close();
+    vlc::basic_vmem_wrapper::close();
 
     _formatSetupAsync.data = 0;
     uv_close( reinterpret_cast<uv_handle_t*>( &_formatSetupAsync ), 0 );
@@ -46,24 +46,54 @@ JsVlcPlayer::~JsVlcPlayer()
     uv_close( reinterpret_cast<uv_handle_t*>( &_frameUpdatedAsync ), 0 );
 }
 
-void JsVlcPlayer::on_format_setup()
+unsigned JsVlcPlayer::video_format_cb( char* chroma,
+                                       unsigned* width, unsigned* height,
+                                       unsigned* pitches, unsigned* lines )
 {
-    _frameWidth = width();
-    _frameHeight = height();
+    _frameWidth  = *width;
+    _frameHeight = *height;
+
+    memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
+    *pitches = _frameWidth * vlc::DEF_PIXEL_BYTES;
+    *lines = _frameHeight;
+
+    _tmpFrameBuffer.resize( *pitches * *lines );
 
     uv_async_send( &_formatSetupAsync );
+
+    return 1;
 }
 
-void JsVlcPlayer::on_frame_ready( const std::vector<char>* frameBuf )
+void JsVlcPlayer::video_cleanup_cb()
 {
-    if( frameBuf && !frameBuf->empty() && _jsRawFrameBuffer ) {
-        assert( _jsFrameBufferSize <= frameBuf->size() );
-        memcpy( _jsRawFrameBuffer, frameBuf->data(), _jsFrameBufferSize );
-        uv_async_send( &_frameUpdatedAsync );
-    }
+    if( !_tmpFrameBuffer.empty() )
+        _tmpFrameBuffer.swap( std::vector<char>() );
+
+    uv_async_send( &_frameUpdatedAsync );
 }
 
-void JsVlcPlayer::on_frame_cleanup()
+void* JsVlcPlayer::video_lock_cb( void** planes )
+{
+    if( _tmpFrameBuffer.empty() ) {
+        *planes = _jsRawFrameBuffer;
+    } else {
+        if( _jsRawFrameBuffer ) {
+            _tmpFrameBuffer.swap( std::vector<char>() );
+            *planes = _jsRawFrameBuffer;
+        } else {
+            *planes = _tmpFrameBuffer.data();
+        }
+    }
+
+    return 0;
+}
+
+void JsVlcPlayer::video_unlock_cb( void* /*picture*/, void *const * /*planes*/ )
+{
+
+}
+
+void JsVlcPlayer::video_display_cb( void* /*picture*/ )
 {
     uv_async_send( &_frameUpdatedAsync );
 }
