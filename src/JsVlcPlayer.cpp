@@ -247,7 +247,10 @@ void JsVlcPlayer::initJsApi()
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FRAME_CLEANUP );
 
     NODE_SET_PROTOTYPE_METHOD( ct, "play", jsPlay );
+    NODE_SET_PROTOTYPE_METHOD( ct, "pause", jsPause );
+    NODE_SET_PROTOTYPE_METHOD( ct, "togglePause", jsTogglePause );
     NODE_SET_PROTOTYPE_METHOD( ct, "stop", jsStop );
+    NODE_SET_PROTOTYPE_METHOD( ct, "toggleMute", jsToggleMute );
 
     _jsConstructor.Reset( isolate, ct->GetFunction() );
 }
@@ -290,6 +293,28 @@ void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )
     }
 }
 
+void JsVlcPlayer::jsPause( const v8::FunctionCallbackInfo<v8::Value>& args )
+{
+    if( args.Length() != 0 )
+        return;
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    player.pause();
+}
+
+void JsVlcPlayer::jsTogglePause( const v8::FunctionCallbackInfo<v8::Value>& args )
+{
+    if( args.Length() != 0 )
+        return;
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    player.togglePause();
+}
+
 void JsVlcPlayer::jsStop( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     if( args.Length() != 0 )
@@ -299,6 +324,17 @@ void JsVlcPlayer::jsStop( const v8::FunctionCallbackInfo<v8::Value>& args )
     vlc::player& player = jsPlayer->_player;
 
     player.stop();
+}
+
+void JsVlcPlayer::jsToggleMute( const v8::FunctionCallbackInfo<v8::Value>& args )
+{
+    if( args.Length() != 0 )
+        return;
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    player.audio().toggle_mute();
 }
 
 void JsVlcPlayer::getJsCallback( v8::Local<v8::String> property,
