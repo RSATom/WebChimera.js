@@ -249,6 +249,13 @@ void JsVlcPlayer::initJsApi()
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "state" ),
                                     jsState );
 
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "position" ),
+                                    jsPosition, jsSetPosition );
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "time" ),
+                                    jsTime, jsSetTime );
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "volume" ),
+                                    jsVolume, jsSetVolume );
+
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FRAME_SETUP );
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FRAME_READY );
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FRAME_CLEANUP );
@@ -320,6 +327,99 @@ void JsVlcPlayer::jsState( v8::Local<v8::String> property,
     vlc::player& player = jsPlayer->_player;
 
     info.GetReturnValue().Set( Number::New( isolate, player.get_state() ) );
+}
+
+void JsVlcPlayer::jsPosition( v8::Local<v8::String> property,
+                              const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Number::New( isolate, player.get_position() ) );
+}
+
+void JsVlcPlayer::jsSetPosition( v8::Local<v8::String> property,
+                                 v8::Local<v8::Value> value,
+                                 const v8::PropertyCallbackInfo<void>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    Local<Number> jsPosition = Local<Number>::Cast( value );
+    if( !jsPosition.IsEmpty() )
+        player.set_position( static_cast<float>( jsPosition->Value() ) );
+}
+
+void JsVlcPlayer::jsTime( v8::Local<v8::String> property,
+                          const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Number::New( isolate, static_cast<double>( player.get_time() ) ) );
+}
+
+void JsVlcPlayer::jsSetTime( v8::Local<v8::String> property,
+                             v8::Local<v8::Value> value,
+                             const v8::PropertyCallbackInfo<void>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    Local<Number> jsTime = Local<Number>::Cast( value );
+    if( !jsTime.IsEmpty() )
+        player.set_time( static_cast<libvlc_time_t>( jsTime->Value() ) );
+}
+
+void JsVlcPlayer::jsVolume( v8::Local<v8::String> property,
+                            const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Number::New( isolate, player.audio().get_volume() ) );
+}
+
+void JsVlcPlayer::jsSetVolume( v8::Local<v8::String> property,
+                               v8::Local<v8::Value> value,
+                               const v8::PropertyCallbackInfo<void>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    Local<Number> jsVolume = Local<Number>::Cast( value );
+    if( !jsVolume.IsEmpty() && jsVolume->Value() > 0 )
+        player.audio().set_volume( static_cast<unsigned>( jsVolume->Value() ) );
 }
 
 void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )

@@ -32,6 +32,24 @@ public:
     static void jsState( v8::Local<v8::String> property,
                          const v8::PropertyCallbackInfo<v8::Value>& info );
 
+    static void jsPosition( v8::Local<v8::String> property,
+                            const v8::PropertyCallbackInfo<v8::Value>& info );
+    static void jsSetPosition( v8::Local<v8::String> property,
+                               v8::Local<v8::Value> value,
+                               const v8::PropertyCallbackInfo<void>& info );
+
+    static void jsTime( v8::Local<v8::String> property,
+                        const v8::PropertyCallbackInfo<v8::Value>& info );
+    static void jsSetTime( v8::Local<v8::String> property,
+                           v8::Local<v8::Value> value,
+                           const v8::PropertyCallbackInfo<void>& info );
+
+    static void jsVolume( v8::Local<v8::String> property,
+                          const v8::PropertyCallbackInfo<v8::Value>& info );
+    static void jsSetVolume( v8::Local<v8::String> property,
+                             v8::Local<v8::Value> value,
+                             const v8::PropertyCallbackInfo<void>& info );
+
     static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
     static void jsPause( const v8::FunctionCallbackInfo<v8::Value>& args );
     static void jsTogglePause( const v8::FunctionCallbackInfo<v8::Value>& args );
