@@ -2,12 +2,61 @@
 
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
 
-JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Function>& renderCallback ) :
-    _libvlc( nullptr ), _frameWidth( 0 ), _frameHeight( 0 ),
-    _jsRawFrameBuffer( nullptr )
+///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::AsyncData
 {
-    _jsRenderCallback.Reset( v8::Isolate::GetCurrent(), renderCallback );
+    virtual void process( JsVlcPlayer* ) = 0;
+};
 
+///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::FrameSetupData : public JsVlcPlayer::AsyncData
+{
+    FrameSetupData( unsigned width, unsigned height, const std::string& pixelFormat ) :
+        width( width ), height( height ), pixelFormat( pixelFormat ) {}
+
+    void process( JsVlcPlayer* ) override;
+
+    const unsigned width;
+    const unsigned height;
+    const std::string pixelFormat;
+};
+
+void JsVlcPlayer::FrameSetupData::process( JsVlcPlayer* jsPlayer )
+{
+    jsPlayer->setupBuffer( width, height, pixelFormat );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::FrameUpdated : public JsVlcPlayer::AsyncData
+{
+    void process( JsVlcPlayer* ) override;
+};
+
+void JsVlcPlayer::FrameUpdated::process( JsVlcPlayer* jsPlayer )
+{
+    jsPlayer->frameUpdated();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::CallbackData : public JsVlcPlayer::AsyncData
+{
+    CallbackData( JsVlcPlayer::Callbacks_e callback ) :
+        callback( callback ) {}
+
+    void process( JsVlcPlayer* );
+
+    const JsVlcPlayer::Callbacks_e callback;
+};
+
+void JsVlcPlayer::CallbackData::process( JsVlcPlayer* jsPlayer )
+{
+    jsPlayer->callCallback( callback );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+JsVlcPlayer::JsVlcPlayer() :
+    _libvlc( nullptr ), _jsRawFrameBuffer( nullptr )
+{
     _libvlc = libvlc_new( 0, nullptr );
     assert( _libvlc );
     if( _player.open( _libvlc ) ) {
@@ -18,48 +67,35 @@ JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Function>& renderCallback ) :
 
     uv_loop_t* loop = uv_default_loop();
 
-    _formatSetupAsync.data = this;
-    uv_async_init( loop, &_formatSetupAsync,
+    uv_async_init( loop, &_async,
         [] ( uv_async_t* handle ) {
             if( handle->data )
-                reinterpret_cast<JsVlcPlayer*>( handle->data )->setupBuffer();
+                reinterpret_cast<JsVlcPlayer*>( handle->data )->handleAsync();
         }
     );
-
-    _frameUpdatedAsync.data = this;
-    uv_async_init( loop, &_frameUpdatedAsync,
-        [] ( uv_async_t* handle ) {
-            if( handle->data )
-                reinterpret_cast<JsVlcPlayer*>( handle->data )->frameUpdated();
-        }
-    );
+    _async.data = this;
 }
 
 JsVlcPlayer::~JsVlcPlayer()
 {
     vlc::basic_vmem_wrapper::close();
 
-    _formatSetupAsync.data = 0;
-    uv_close( reinterpret_cast<uv_handle_t*>( &_formatSetupAsync ), 0 );
-
-    _frameUpdatedAsync.data = 0;
-    uv_close( reinterpret_cast<uv_handle_t*>( &_frameUpdatedAsync ), 0 );
+    _async.data = nullptr;
+    uv_close( reinterpret_cast<uv_handle_t*>( &_async ), 0 );
 }
 
 unsigned JsVlcPlayer::video_format_cb( char* chroma,
                                        unsigned* width, unsigned* height,
                                        unsigned* pitches, unsigned* lines )
 {
-    _frameWidth  = *width;
-    _frameHeight = *height;
-
     memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
-    *pitches = _frameWidth * vlc::DEF_PIXEL_BYTES;
-    *lines = _frameHeight;
+    *pitches = *width * vlc::DEF_PIXEL_BYTES;
+    *lines = *height;
 
     _tmpFrameBuffer.resize( *pitches * *lines );
 
-    uv_async_send( &_formatSetupAsync );
+    _asyncData.push_back( std::make_shared<FrameSetupData>( *width, *height, vlc::DEF_CHROMA ) );
+    uv_async_send( &_async );
 
     return 1;
 }
@@ -69,7 +105,8 @@ void JsVlcPlayer::video_cleanup_cb()
     if( !_tmpFrameBuffer.empty() )
         _tmpFrameBuffer.swap( std::vector<char>() );
 
-    uv_async_send( &_frameUpdatedAsync );
+    _asyncData.push_back( std::make_shared<CallbackData>( CB_FRAME_CLEANUP ) );
+    uv_async_send( &_async );
 }
 
 void* JsVlcPlayer::video_lock_cb( void** planes )
@@ -85,28 +122,38 @@ void* JsVlcPlayer::video_lock_cb( void** planes )
         }
     }
 
-    return 0;
+    return nullptr;
 }
 
 void JsVlcPlayer::video_unlock_cb( void* /*picture*/, void *const * /*planes*/ )
 {
-
 }
 
 void JsVlcPlayer::video_display_cb( void* /*picture*/ )
 {
-    uv_async_send( &_frameUpdatedAsync );
+    _asyncData.push_back( std::make_shared<FrameUpdated>() );
+    uv_async_send( &_async );
 }
 
-void JsVlcPlayer::setupBuffer()
+void JsVlcPlayer::handleAsync()
+{
+    while( !_asyncData.empty() ) {
+        std::deque<std::shared_ptr<AsyncData> > tmpData;
+        _asyncData.swap( tmpData );
+        for( const auto& i: tmpData ) {
+            i->process( this );
+        }
+    }
+}
+
+void JsVlcPlayer::setupBuffer( unsigned width, unsigned height, const std::string& pixelFormat )
 {
     using namespace v8;
 
-    if( 0 == _frameWidth || 0 == _frameHeight )
+    if( 0 == width || 0 == height )
         return;
 
-    const unsigned frameBufferSize =
-        _frameWidth * _frameHeight * vlc::DEF_PIXEL_BYTES;
+    const unsigned frameBufferSize = width * height * vlc::DEF_PIXEL_BYTES;
 
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
@@ -120,18 +167,23 @@ void JsVlcPlayer::setupBuffer()
                                  v8::String::kInternalizedString ) );
     Local<Value> argv[] =
         { Integer::NewFromUnsigned( isolate, frameBufferSize ) };
-    Local<Object> array =
+    Local<Object> jsArray =
         Handle<Function>::Cast( abv )->NewInstance( 1, argv );
 
-    array->Set( String::NewFromUtf8( isolate, "width" ),
-                Integer::New( isolate, _frameWidth ) );
-    array->Set( String::NewFromUtf8( isolate, "height" ),
-                Integer::New( isolate, _frameHeight) );
+    Local<Integer> jsWidth = Integer::New( isolate, width );
+    Local<Integer> jsHeight = Integer::New( isolate, height );
+    Local<String> jsPixelFormat = String::NewFromUtf8( isolate, pixelFormat.c_str() );
 
-    _jsFrameBuffer.Reset( isolate, array );
+    jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
+    jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
+    jsArray->Set( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat );
+
+    _jsFrameBuffer.Reset( isolate, jsArray );
 
     _jsRawFrameBuffer =
-        static_cast<char*>( array->GetIndexedPropertiesExternalArrayData() );
+        static_cast<char*>( jsArray->GetIndexedPropertiesExternalArrayData() );
+
+    callCallback( CB_FRAME_SETUP, { jsWidth, jsHeight, jsPixelFormat } );
 }
 
 void JsVlcPlayer::frameUpdated()
@@ -141,14 +193,41 @@ void JsVlcPlayer::frameUpdated()
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    Local<Function> renderCallback =
-        Local<Function>::New( isolate, _jsRenderCallback );
+    callCallback( CB_FRAME_READY, { Local<Value>::New( Isolate::GetCurrent(), _jsFrameBuffer ) } );
+}
 
-    Local<Value> argv[] =
-        { Local<Object>::New( isolate, _jsFrameBuffer ) };
+#define SET_CALLBACK_PROPERTY( objTemplate, name, callback )                      \
+    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name ), \
+        [] ( v8::Local<v8::String> property,                                      \
+             const v8::PropertyCallbackInfo<v8::Value>& info )                    \
+        {                                                                         \
+            JsVlcPlayer::getJsCallback( property, info, callback );               \
+        },                                                                        \
+        [] ( v8::Local<v8::String> property,                                      \
+             v8::Local<v8::Value> value,                                          \
+             const v8::PropertyCallbackInfo<void>& info )                         \
+        {                                                                         \
+            JsVlcPlayer::setJsCallback( property, value, info, callback );        \
+        } )
 
-    renderCallback->Call( isolate->GetCurrentContext()->Global(),
-                          sizeof( argv ) / sizeof( argv[0] ), argv );
+void JsVlcPlayer::callCallback( Callbacks_e callback,
+                                std::initializer_list<v8::Local<v8::Value> > list )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    if( _jsCallbacks[callback].IsEmpty() )
+        return;
+
+    std::vector<v8::Local<v8::Value> > argList = list;
+
+    Local<Function> callbackFunc =
+        Local<Function>::New( isolate, _jsCallbacks[callback] );
+
+    callbackFunc->Call( isolate->GetCurrentContext()->Global(),
+                        argList.size(), argList.data() );
 }
 
 void JsVlcPlayer::initJsApi()
@@ -159,7 +238,13 @@ void JsVlcPlayer::initJsApi()
 
     Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
     ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlayer" ) );
-    ct->InstanceTemplate()->SetInternalFieldCount( 1 );
+
+    Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
+    vlcPlayerTemplate->SetInternalFieldCount( 1 );
+
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FRAME_SETUP );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FRAME_READY );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FRAME_CLEANUP );
 
     NODE_SET_PROTOTYPE_METHOD( ct, "play", jsPlay );
     NODE_SET_PROTOTYPE_METHOD( ct, "stop", jsStop );
@@ -171,25 +256,17 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     using namespace v8;
 
-    if( args.Length() != 1 )
-        return;
-
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    Local<Function> renderCallback = Local<Function>::Cast( args[0] );
-
     if( args.IsConstructCall() ) {
-        JsVlcPlayer* jsPlayer = new JsVlcPlayer( renderCallback );
+        JsVlcPlayer* jsPlayer = new JsVlcPlayer;
         jsPlayer->Wrap( args.This() );
         args.GetReturnValue().Set( args.This() );
     } else {
-        Local<Value> argv[] = { renderCallback };
         Local<Function> constructor =
             Local<Function>::New( isolate, _jsConstructor );
-        args.GetReturnValue().Set(
-            constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ),
-                                      argv ) );
+        args.GetReturnValue().Set( constructor->NewInstance( 0, nullptr ) );
     }
 }
 
@@ -222,4 +299,41 @@ void JsVlcPlayer::jsStop( const v8::FunctionCallbackInfo<v8::Value>& args )
     vlc::player& player = jsPlayer->_player;
 
     player.stop();
+}
+
+void JsVlcPlayer::getJsCallback( v8::Local<v8::String> property,
+                                 const v8::PropertyCallbackInfo<v8::Value>& info,
+                                 Callbacks_e callback )
+{
+    using namespace v8;
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+
+    if( jsPlayer->_jsCallbacks[callback].IsEmpty() )
+        return;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Local<Function> callbackFunc =
+        Local<Function>::New( isolate, jsPlayer->_jsCallbacks[callback] );
+
+    info.GetReturnValue().Set( callbackFunc );
+}
+
+void JsVlcPlayer::setJsCallback( v8::Local<v8::String> property,
+                                 v8::Local<v8::Value> value,
+                                 const v8::PropertyCallbackInfo<void>& info,
+                                 Callbacks_e callback )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+
+    Local<Function> callbackFunc = Local<Function>::Cast( value );
+    if( !callbackFunc.IsEmpty() )
+        jsPlayer->_jsCallbacks[callback].Reset( isolate, callbackFunc );
 }

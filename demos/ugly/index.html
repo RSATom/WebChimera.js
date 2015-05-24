@@ -20,12 +20,93 @@ function glCanvas()
 	return document.getElementById("glCanvas");
 }
 
-function render( videoFrame )
+function frameSetup(width, height, pixelFormat)
 {
-	var canvas = glCanvas();
-	canvas.width = videoFrame.width;
-	canvas.height = videoFrame.height;
+    console.log("frameSetup", width, height, pixelFormat);
+    vlcPlayer.onFrameReady = render;
 
+    var canvas = glCanvas();
+    canvas.width = width;
+    canvas.height = height;
+
+    console.log(glCanvas().width, glCanvas().height);
+
+    gl = canvas.getContext("webgl");
+
+    var vertexShaderSource =
+        "attribute highp vec4 a_vertex; " +
+        "attribute lowp vec2 a_texCoord; " +
+        "varying lowp vec2 v_texCoord; " +
+        "void main() { " +
+        " v_texCoord = a_texCoord; " +
+        " gl_Position = a_vertex; " +
+        "} ";
+
+    var fragmentShaderSource =
+        "varying lowp vec2 v_texCoord; " +
+        "uniform sampler2D tex; " +
+        "void main() { " +
+        " mediump vec3 p = texture2D(tex, v_texCoord).rgb; " +
+        " gl_FragColor = vec4(p.b, p.g, p.r, 1.0); " +
+        "} ";
+
+    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, vertexShaderSource);
+    gl.compileShader(vertexShader);
+
+    var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fragmentShader, fragmentShaderSource);
+    gl.compileShader(fragmentShader);
+
+    program = gl.createProgram();
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
+
+    gl.useProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.log("Shader link failed.");
+    }
+
+    aVertex = gl.getAttribLocation(program, "a_vertex");
+    gl.enableVertexAttribArray(aVertex);
+    aTexCoord = gl.getAttribLocation(program, "a_texCoord");
+    gl.enableVertexAttribArray(aTexCoord);
+
+    var v = [
+        -1., 1., 0.,
+        1., -1., 0.,
+        -1., -1., 0.,
+
+        1., -1., 0.,
+        -1., 1., 0.,
+        1., 1., 0.,
+    ];
+
+    var t = [
+        0., 0.,
+        1., 1.,
+        0., 1.,
+
+        1., 1.,
+        0., 0.,
+        1., 0.,
+    ];
+
+    verticesBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
+
+    texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t), gl.STATIC_DRAW);
+
+    texture = gl.createTexture();
+}
+
+function render(videoFrame)
+{
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -50,83 +131,11 @@ function render( videoFrame )
 
 function init()
 {
-	wcAddon = require('../../build/release/WebChimera.js.node');
+	wcAddon = require('../../build/Debug/WebChimera.js.node');
 
-	gl = glCanvas().getContext("webgl");
-
-	var vertexShaderSource =
-		"attribute highp vec4 a_vertex; " +
-		"attribute lowp vec2 a_texCoord; " +
-		"varying lowp vec2 v_texCoord; " +
-		"void main() { " +
-		" v_texCoord = a_texCoord; " +
-		" gl_Position = a_vertex; " +
-		"} ";
-
-	var fragmentShaderSource =
-		"varying lowp vec2 v_texCoord; " +
-		"uniform sampler2D tex; " +
-		"void main() { " +
-		" mediump vec3 p = texture2D( tex, v_texCoord ).rgb; " +
-		" gl_FragColor = vec4( p.b, p.g, p.r, 1.0 ); " +
-		"} ";
-
-	var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-	gl.shaderSource(vertexShader, vertexShaderSource);
-	gl.compileShader(vertexShader);
-
-	var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
-	gl.shaderSource(fragmentShader, fragmentShaderSource);
-	gl.compileShader(fragmentShader);
-
-	program = gl.createProgram();
-	gl.attachShader(program, vertexShader);
-	gl.attachShader(program, fragmentShader);
-	gl.linkProgram(program);
-
-	gl.useProgram(program);
-
-	if(!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-		console.log("Shader link failed.");
-	}
-
-	aVertex = gl.getAttribLocation(program, "a_vertex");
-	gl.enableVertexAttribArray(aVertex);
-	aTexCoord = gl.getAttribLocation(program, "a_texCoord");
-	gl.enableVertexAttribArray(aTexCoord);
-
-	var v = [
-		-1. ,  1. ,  0. ,
-		 1. , -1. ,  0. ,
-		-1. , -1. ,  0. ,
-
-		 1. , -1. ,  0. ,
-		-1. ,  1. ,  0. ,
-		 1. ,  1. ,  0. ,
-	];
-
-	var t = [
-		0., 0.,
-		1., 1.,
-		0., 1.,
-
-		1., 1.,
-		0., 0.,
-		1., 0.,
-	];
-
-	verticesBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(v), gl.STATIC_DRAW);
-
-	texCoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(t), gl.STATIC_DRAW);
-
-	texture = gl.createTexture();
-
-	vlcPlayer = wcAddon.createPlayer(render);
-	vlcPlayer.play("file:///c:/temp/1.avi");
+	vlcPlayer = wcAddon.createPlayer();
+	vlcPlayer.onFrameSetup = frameSetup;
+	vlcPlayer.play("file:///f:/video/1.mpg");
 }
 
 </script>
