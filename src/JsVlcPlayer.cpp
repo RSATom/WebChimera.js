@@ -242,6 +242,13 @@ void JsVlcPlayer::initJsApi()
     Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
     vlcPlayerTemplate->SetInternalFieldCount( 1 );
 
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "playing" ),
+                                    jsPlaying );
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "length" ),
+                                    jsLength );
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "state" ),
+                                    jsState );
+
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FRAME_SETUP );
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FRAME_READY );
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FRAME_CLEANUP );
@@ -271,6 +278,48 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
             Local<Function>::New( isolate, _jsConstructor );
         args.GetReturnValue().Set( constructor->NewInstance( 0, nullptr ) );
     }
+}
+
+void JsVlcPlayer::jsPlaying( v8::Local<v8::String> property,
+                              const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Boolean::New( isolate, player.is_playing() ) );
+}
+
+void JsVlcPlayer::jsLength( v8::Local<v8::String> property,
+                             const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Number::New( isolate, static_cast<double>( player.get_length() ) ) );
+}
+
+void JsVlcPlayer::jsState( v8::Local<v8::String> property,
+                            const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Number::New( isolate, player.get_state() ) );
 }
 
 void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )
