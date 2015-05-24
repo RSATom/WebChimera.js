@@ -28,9 +28,9 @@ public:
     static void jsPlaying( v8::Local<v8::String> property,
                            const v8::PropertyCallbackInfo<v8::Value>& info );
     static void jsLength( v8::Local<v8::String> property,
-                           const v8::PropertyCallbackInfo<v8::Value>& info );
+                          const v8::PropertyCallbackInfo<v8::Value>& info );
     static void jsState( v8::Local<v8::String> property,
-                           const v8::PropertyCallbackInfo<v8::Value>& info );
+                         const v8::PropertyCallbackInfo<v8::Value>& info );
 
     static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
     static void jsPause( const v8::FunctionCallbackInfo<v8::Value>& args );

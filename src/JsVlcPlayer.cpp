@@ -281,7 +281,7 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 }
 
 void JsVlcPlayer::jsPlaying( v8::Local<v8::String> property,
-                              const v8::PropertyCallbackInfo<v8::Value>& info )
+                             const v8::PropertyCallbackInfo<v8::Value>& info )
 {
     using namespace v8;
 
@@ -295,7 +295,7 @@ void JsVlcPlayer::jsPlaying( v8::Local<v8::String> property,
 }
 
 void JsVlcPlayer::jsLength( v8::Local<v8::String> property,
-                             const v8::PropertyCallbackInfo<v8::Value>& info )
+                            const v8::PropertyCallbackInfo<v8::Value>& info )
 {
     using namespace v8;
 
@@ -309,7 +309,7 @@ void JsVlcPlayer::jsLength( v8::Local<v8::String> property,
 }
 
 void JsVlcPlayer::jsState( v8::Local<v8::String> property,
-                            const v8::PropertyCallbackInfo<v8::Value>& info )
+                           const v8::PropertyCallbackInfo<v8::Value>& info )
 {
     using namespace v8;
 
