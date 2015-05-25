@@ -56,12 +56,105 @@ void JsVlcPlayer::CallbackData::process( JsVlcPlayer* jsPlayer )
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::LibvlcEvent : public JsVlcPlayer::AsyncData
+{
+    LibvlcEvent( const libvlc_event_t& libvlcEvent ) :
+        libvlcEvent( libvlcEvent ) {}
+
+    void process( JsVlcPlayer* );
+
+    const libvlc_event_t libvlcEvent;
+};
+
+void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Callbacks_e callback = CB_Max;
+
+    std::initializer_list<v8::Local<v8::Value> > list;
+
+    switch( libvlcEvent.type ) {
+        case libvlc_MediaPlayerMediaChanged:
+            callback = CB_MediaPlayerMediaChanged;
+            break;
+        case libvlc_MediaPlayerNothingSpecial:
+            callback = CB_MediaPlayerNothingSpecial;
+            break;
+        case libvlc_MediaPlayerOpening:
+            callback = CB_MediaPlayerOpening;
+            break;
+        case libvlc_MediaPlayerBuffering:
+            callback = CB_MediaPlayerBuffering;
+            break;
+        case libvlc_MediaPlayerPlaying:
+            callback = CB_MediaPlayerPlaying;
+            break;
+        case libvlc_MediaPlayerPaused:
+            callback = CB_MediaPlayerPaused;
+            break;
+        case libvlc_MediaPlayerStopped:
+            callback = CB_MediaPlayerStopped;
+            break;
+        case libvlc_MediaPlayerForward:
+            callback = CB_MediaPlayerForward;
+            break;
+        case libvlc_MediaPlayerBackward:
+            callback = CB_MediaPlayerBackward;
+            break;
+        case libvlc_MediaPlayerEndReached:
+            callback = CB_MediaPlayerEndReached;
+            break;
+        case libvlc_MediaPlayerEncounteredError:
+            callback = CB_MediaPlayerEncounteredError;
+            break;
+        case libvlc_MediaPlayerTimeChanged: {
+            callback = CB_MediaPlayerTimeChanged;
+            const double new_time =
+                static_cast<double>( libvlcEvent.u.media_player_time_changed.new_time );
+            list = { Number::New( isolate, static_cast<double>( new_time ) ) };
+            break;
+        }
+        case libvlc_MediaPlayerPositionChanged: {
+            callback = CB_MediaPlayerPositionChanged;
+            list = { Number::New( isolate, libvlcEvent.u.media_player_position_changed.new_position ) };
+            break;
+        }
+        case libvlc_MediaPlayerSeekableChanged: {
+            callback = CB_MediaPlayerSeekableChanged;
+            list = { Boolean::New( isolate, libvlcEvent.u.media_player_seekable_changed.new_seekable != 0 ) };
+            break;
+        }
+        case libvlc_MediaPlayerPausableChanged: {
+            callback = CB_MediaPlayerPausableChanged;
+            list = { Boolean::New( isolate, libvlcEvent.u.media_player_pausable_changed.new_pausable != 0 ) };
+            break;
+        }
+        case libvlc_MediaPlayerLengthChanged: {
+            callback = CB_MediaPlayerLengthChanged;
+           const double new_length =
+               static_cast<double>( libvlcEvent.u.media_player_length_changed.new_length );
+            list = { Number::New( isolate, new_length ) };
+            break;
+        }
+    }
+
+    if( callback != CB_Max ) {
+        jsPlayer->callCallback( callback, list );
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 JsVlcPlayer::JsVlcPlayer() :
     _libvlc( nullptr ), _jsRawFrameBuffer( nullptr )
 {
     _libvlc = libvlc_new( 0, nullptr );
     assert( _libvlc );
     if( _player.open( _libvlc ) ) {
+        _player.register_callback( this );
         vlc::basic_vmem_wrapper::open( &_player.basic_player() );
     } else {
         assert( false );
@@ -80,6 +173,7 @@ JsVlcPlayer::JsVlcPlayer() :
 
 JsVlcPlayer::~JsVlcPlayer()
 {
+    _player.unregister_callback( this );
     vlc::basic_vmem_wrapper::close();
 
     _async.data = nullptr;
@@ -96,7 +190,9 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
 
     _tmpFrameBuffer.resize( *pitches * *lines );
 
+    _asyncDataGuard.lock();
     _asyncData.push_back( std::make_shared<FrameSetupData>( *width, *height, vlc::DEF_CHROMA ) );
+    _asyncDataGuard.unlock();
     uv_async_send( &_async );
 
     return 1;
@@ -107,7 +203,9 @@ void JsVlcPlayer::video_cleanup_cb()
     if( !_tmpFrameBuffer.empty() )
         std::vector<char>().swap( _tmpFrameBuffer );
 
-    _asyncData.push_back( std::make_shared<CallbackData>( CB_FRAME_CLEANUP ) );
+    _asyncDataGuard.lock();
+    _asyncData.push_back( std::make_shared<CallbackData>( CB_FrameCleanup ) );
+    _asyncDataGuard.unlock();
     uv_async_send( &_async );
 }
 
@@ -133,7 +231,17 @@ void JsVlcPlayer::video_unlock_cb( void* /*picture*/, void *const * /*planes*/ )
 
 void JsVlcPlayer::video_display_cb( void* /*picture*/ )
 {
+    _asyncDataGuard.lock();
     _asyncData.push_back( std::make_shared<FrameUpdated>() );
+    _asyncDataGuard.unlock();
+    uv_async_send( &_async );
+}
+
+void JsVlcPlayer::media_player_event( const libvlc_event_t* e )
+{
+    _asyncDataGuard.lock();
+    _asyncData.push_back( std::make_shared<LibvlcEvent>( *e ) );
+    _asyncDataGuard.unlock();
     uv_async_send( &_async );
 }
 
@@ -141,7 +249,9 @@ void JsVlcPlayer::handleAsync()
 {
     while( !_asyncData.empty() ) {
         std::deque<std::shared_ptr<AsyncData> > tmpData;
+        _asyncDataGuard.lock();
         _asyncData.swap( tmpData );
+        _asyncDataGuard.unlock();
         for( const auto& i: tmpData ) {
             i->process( this );
         }
@@ -185,7 +295,7 @@ void JsVlcPlayer::setupBuffer( unsigned width, unsigned height, const std::strin
     _jsRawFrameBuffer =
         static_cast<char*>( jsArray->GetIndexedPropertiesExternalArrayData() );
 
-    callCallback( CB_FRAME_SETUP, { jsWidth, jsHeight, jsPixelFormat } );
+    callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat } );
 }
 
 void JsVlcPlayer::frameUpdated()
@@ -195,7 +305,7 @@ void JsVlcPlayer::frameUpdated()
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    callCallback( CB_FRAME_READY, { Local<Value>::New( Isolate::GetCurrent(), _jsFrameBuffer ) } );
+    callCallback( CB_FrameReady, { Local<Value>::New( Isolate::GetCurrent(), _jsFrameBuffer ) } );
 }
 
 #define SET_CALLBACK_PROPERTY( objTemplate, name, callback )                      \
@@ -237,6 +347,7 @@ void JsVlcPlayer::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
 
     Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
     ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlayer" ) );
@@ -258,9 +369,27 @@ void JsVlcPlayer::initJsApi()
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "volume" ),
                                     jsVolume, jsSetVolume );
 
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FRAME_SETUP );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FRAME_READY );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FRAME_CLEANUP );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FrameSetup );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FrameReady );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FrameCleanup );
+
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onMediaChanged", CB_MediaPlayerMediaChanged );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onNothingSpecial", CB_MediaPlayerNothingSpecial );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onOpening", CB_MediaPlayerOpening );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onBuffering", CB_MediaPlayerBuffering );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPlaying", CB_MediaPlayerPlaying );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPaused", CB_MediaPlayerPaused );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onForward", CB_MediaPlayerForward );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onBackward", CB_MediaPlayerBackward );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onEncounteredError", CB_MediaPlayerEncounteredError );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onEndReached", CB_MediaPlayerEndReached );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onStopped", CB_MediaPlayerStopped );
+
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onTimeChanged", CB_MediaPlayerTimeChanged );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPositionChanged", CB_MediaPlayerPositionChanged );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onSeekableChanged", CB_MediaPlayerSeekableChanged );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPausableChanged", CB_MediaPlayerPausableChanged );
+    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onLengthChanged", CB_MediaPlayerLengthChanged );
 
     NODE_SET_PROTOTYPE_METHOD( ct, "play", jsPlay );
     NODE_SET_PROTOTYPE_METHOD( ct, "pause", jsPause );

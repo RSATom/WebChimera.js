@@ -11,14 +11,34 @@
 #include <libvlc_wrapper/vlc_vmem.h>
 
 class JsVlcPlayer :
-    public node::ObjectWrap, private vlc::basic_vmem_wrapper
+    public node::ObjectWrap,
+    private vlc::basic_vmem_wrapper,
+    private vlc::media_player_events_callback
 {
     enum Callbacks_e {
-        CB_FRAME_SETUP,
-        CB_FRAME_READY,
-        CB_FRAME_CLEANUP,
+        CB_FrameSetup,
+        CB_FrameReady,
+        CB_FrameCleanup,
 
-        CB_MAX,
+        CB_MediaPlayerMediaChanged,
+        CB_MediaPlayerNothingSpecial,
+        CB_MediaPlayerOpening,
+        CB_MediaPlayerBuffering,
+        CB_MediaPlayerPlaying,
+        CB_MediaPlayerPaused,
+        CB_MediaPlayerStopped,
+        CB_MediaPlayerForward,
+        CB_MediaPlayerBackward,
+        CB_MediaPlayerEndReached,
+        CB_MediaPlayerEncounteredError,
+
+        CB_MediaPlayerTimeChanged,
+        CB_MediaPlayerPositionChanged,
+        CB_MediaPlayerSeekableChanged,
+        CB_MediaPlayerPausableChanged,
+        CB_MediaPlayerLengthChanged,
+
+        CB_Max,
     };
 
 public:
@@ -72,10 +92,13 @@ private:
     struct FrameSetupData;
     struct FrameUpdated;
     struct CallbackData;
+    struct LibvlcEvent;
 
     void handleAsync();
     void setupBuffer( unsigned width, unsigned height, const std::string& pixelFormat );
     void frameUpdated();
+
+    void media_player_event( const libvlc_event_t* e );
 
     void callCallback( Callbacks_e callback,
                        std::initializer_list<v8::Local<v8::Value> > list = std::initializer_list<v8::Local<v8::Value> >() );
@@ -97,11 +120,12 @@ private:
     vlc::player _player;
 
     uv_async_t _async;
+    std::mutex _asyncDataGuard;
     std::deque<std::shared_ptr<AsyncData> > _asyncData;
 
     std::vector<char> _tmpFrameBuffer;
     v8::Persistent<v8::Value> _jsFrameBuffer;
     char* _jsRawFrameBuffer;
 
-    v8::Persistent<v8::Function> _jsCallbacks[CB_MAX];
+    v8::Persistent<v8::Function> _jsCallbacks[CB_Max];
 };

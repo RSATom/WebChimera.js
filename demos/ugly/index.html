@@ -127,12 +127,17 @@ function render(videoFrame)
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
+function positionChanged(position) {
+    console.log("position: " + position);
+}
+
 function init()
 {
     wcAddon = require('../../build/Release/WebChimera.js.node');
 
     vlcPlayer = wcAddon.createPlayer();
     vlcPlayer.onFrameSetup = frameSetup;
+    vlcPlayer.onPositionChanged = positionChanged;
     vlcPlayer.play("file:///f:/video/1.avi");
 }
 
