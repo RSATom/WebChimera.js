@@ -103,7 +103,7 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
 void JsVlcPlayer::video_cleanup_cb()
 {
     if( !_tmpFrameBuffer.empty() )
-        _tmpFrameBuffer.swap( std::vector<char>() );
+        std::vector<char>().swap( _tmpFrameBuffer );
 
     _asyncData.push_back( std::make_shared<CallbackData>( CB_FRAME_CLEANUP ) );
     uv_async_send( &_async );
@@ -115,7 +115,7 @@ void* JsVlcPlayer::video_lock_cb( void** planes )
         *planes = _jsRawFrameBuffer;
     } else {
         if( _jsRawFrameBuffer ) {
-            _tmpFrameBuffer.swap( std::vector<char>() );
+            std::vector<char>().swap( _tmpFrameBuffer );
             *planes = _jsRawFrameBuffer;
         } else {
             *planes = _tmpFrameBuffer.data();
