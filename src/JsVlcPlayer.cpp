@@ -1,5 +1,7 @@
 #include "JsVlcPlayer.h"
 
+#include <string.h>
+
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
 
 ///////////////////////////////////////////////////////////////////////////////
