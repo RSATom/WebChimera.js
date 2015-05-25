@@ -29,8 +29,6 @@ function frameSetup(width, height, pixelFormat)
     canvas.width = width;
     canvas.height = height;
 
-    console.log(glCanvas().width, glCanvas().height);
-
     gl = canvas.getContext("webgl");
 
     var vertexShaderSource =
@@ -107,35 +105,35 @@ function frameSetup(width, height, pixelFormat)
 
 function render(videoFrame)
 {
-	gl.activeTexture(gl.TEXTURE0);
-	gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture);
 
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-	              videoFrame.width, videoFrame.height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-	              videoFrame);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
+                  videoFrame.width, videoFrame.height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+                  videoFrame);
 
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-	gl.vertexAttribPointer(aVertex, 3, gl.FLOAT, gl.FALSE, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
+    gl.vertexAttribPointer(aVertex, 3, gl.FLOAT, gl.FALSE, 0, 0);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	gl.vertexAttribPointer(aTexCoord, 2, gl.FLOAT, gl.FALSE, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.vertexAttribPointer(aTexCoord, 2, gl.FLOAT, gl.FALSE, 0, 0);
 
-	gl.drawArrays(gl.TRIANGLES, 0, 6);
-	gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.bindTexture(gl.TEXTURE_2D, null);
 }
 
 function init()
 {
-	wcAddon = require('../../build/Debug/WebChimera.js.node');
+    wcAddon = require('../../build/Release/WebChimera.js.node');
 
-	vlcPlayer = wcAddon.createPlayer();
-	vlcPlayer.onFrameSetup = frameSetup;
-	vlcPlayer.play("file:///f:/video/1.mpg");
+    vlcPlayer = wcAddon.createPlayer();
+    vlcPlayer.onFrameSetup = frameSetup;
+    vlcPlayer.play("file:///f:/video/1.avi");
 }
 
 </script>
