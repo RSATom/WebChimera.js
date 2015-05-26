@@ -89,12 +89,14 @@ private:
     ~JsVlcPlayer();
 
     struct AsyncData;
+    struct RV32FrameSetupData;
     struct I420FrameSetupData;
     struct FrameUpdated;
     struct CallbackData;
     struct LibvlcEvent;
 
     void handleAsync();
+    void setupBuffer( const RV32FrameSetupData& );
     void setupBuffer( const I420FrameSetupData& );
     void frameUpdated();
 

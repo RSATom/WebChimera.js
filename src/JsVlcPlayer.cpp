@@ -11,6 +11,24 @@ struct JsVlcPlayer::AsyncData
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::RV32FrameSetupData : public JsVlcPlayer::AsyncData
+{
+    RV32FrameSetupData( unsigned width, unsigned height, unsigned size ) :
+        width( width ), height( height ), size( size ) {}
+
+    void process( JsVlcPlayer* ) override;
+
+    const unsigned width;
+    const unsigned height;
+    const unsigned size;
+};
+
+void JsVlcPlayer::RV32FrameSetupData::process( JsVlcPlayer* jsPlayer )
+{
+    jsPlayer->setupBuffer( *this );
+}
+
+///////////////////////////////////////////////////////////////////////////////
 struct JsVlcPlayer::I420FrameSetupData : public JsVlcPlayer::AsyncData
 {
     I420FrameSetupData( unsigned width, unsigned height,
@@ -289,6 +307,46 @@ void JsVlcPlayer::handleAsync()
             i->process( this );
         }
     }
+}
+
+void JsVlcPlayer::setupBuffer( const RV32FrameSetupData& frameData )
+{
+    using namespace v8;
+
+    if( 0 == frameData.width || 0 == frameData.height )
+        return;
+
+    assert( frameData.size );
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Local<Object> global = isolate->GetCurrentContext()->Global();
+
+    Local<Value> abv =
+        global->Get(
+            String::NewFromUtf8( isolate,
+                                 "Uint8Array",
+                                 v8::String::kInternalizedString ) );
+    Local<Value> argv[] =
+        { Integer::NewFromUnsigned( isolate, frameData.size ) };
+    Local<Object> jsArray =
+        Handle<Function>::Cast( abv )->NewInstance( 1, argv );
+
+    Local<Integer> jsWidth = Integer::New( isolate, frameData.width );
+    Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
+    Local<String> jsPixelFormat = String::NewFromUtf8( isolate, vlc::DEF_CHROMA );
+
+    jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
+    jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
+    jsArray->Set( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat );
+
+    _jsFrameBuffer.Reset( isolate, jsArray );
+
+    _jsRawFrameBuffer =
+        static_cast<char*>( jsArray->GetIndexedPropertiesExternalArrayData() );
+
+    callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat } );
 }
 
 void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
