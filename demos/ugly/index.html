@@ -17,7 +17,7 @@ var vlcPlayer;
 
 function glCanvas()
 {
-	return document.getElementById("glCanvas");
+    return document.getElementById("glCanvas");
 }
 
 function frameSetup(width, height, pixelFormat)
@@ -44,8 +44,7 @@ function frameSetup(width, height, pixelFormat)
         "varying lowp vec2 v_texCoord; " +
         "uniform sampler2D tex; " +
         "void main() { " +
-        " mediump vec3 p = texture2D(tex, v_texCoord).rgb; " +
-        " gl_FragColor = vec4(p.b, p.g, p.r, 1.0); " +
+        " gl_FragColor = vec4(texture2D(tex, v_texCoord).rgb, 1.0); " +
         "} ";
 
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -108,8 +107,8 @@ function render(videoFrame)
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,
-                  videoFrame.width, videoFrame.height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE,
+                  videoFrame.width, videoFrame.height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE,
                   videoFrame);
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);

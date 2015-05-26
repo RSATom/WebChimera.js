@@ -11,21 +11,27 @@ struct JsVlcPlayer::AsyncData
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-struct JsVlcPlayer::FrameSetupData : public JsVlcPlayer::AsyncData
+struct JsVlcPlayer::I420FrameSetupData : public JsVlcPlayer::AsyncData
 {
-    FrameSetupData( unsigned width, unsigned height, const std::string& pixelFormat ) :
-        width( width ), height( height ), pixelFormat( pixelFormat ) {}
+    I420FrameSetupData( unsigned width, unsigned height,
+                        unsigned uPlaneOffset, unsigned vPlaneOffset,
+                        unsigned size ) :
+        width( width ), height( height ),
+        uPlaneOffset( uPlaneOffset ), vPlaneOffset( vPlaneOffset ),
+        size( size ) {}
 
     void process( JsVlcPlayer* ) override;
 
     const unsigned width;
     const unsigned height;
-    const std::string pixelFormat;
+    const unsigned uPlaneOffset;
+    const unsigned vPlaneOffset;
+    const unsigned size;
 };
 
-void JsVlcPlayer::FrameSetupData::process( JsVlcPlayer* jsPlayer )
+void JsVlcPlayer::I420FrameSetupData::process( JsVlcPlayer* jsPlayer )
 {
-    jsPlayer->setupBuffer( width, height, pixelFormat );
+    jsPlayer->setupBuffer( *this );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -184,14 +190,36 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
                                        unsigned* width, unsigned* height,
                                        unsigned* pitches, unsigned* lines )
 {
-    memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
-    *pitches = *width * vlc::DEF_PIXEL_BYTES;
-    *lines = *height;
+    const char CHROMA[] = "I420";
 
-    _tmpFrameBuffer.resize( *pitches * *lines );
+    memcpy( chroma, CHROMA, sizeof( CHROMA ) - 1 );
+
+    const unsigned evenWidth = *width + ( *width & 1 );
+    const unsigned evenHeight = *height + ( *height & 1 );
+
+    pitches[0] = evenWidth; if( pitches[0] % 4 ) pitches[0] += 4 - pitches[0] % 4;
+    pitches[1] = evenWidth / 2; if( pitches[1] % 4 ) pitches[1] += 4 - pitches[1] % 4;
+    pitches[2] = pitches[1];
+
+    assert( 0 == pitches[0] % 4 && 0 == pitches[1] % 4 && 0 == pitches[2] % 4 );
+
+    lines[0] = evenHeight;
+    lines[1] = evenHeight / 2;
+    lines[2] = lines[1];
+
+    _uPlaneOffset = pitches[0] * lines[0];
+    _vPlaneOffset = _uPlaneOffset + pitches[1] * lines[1];
+
+    _tmpFrameBuffer.resize( pitches[0] * lines[0] +
+                            pitches[1] * lines[1] +
+                            pitches[2] * lines[2] );
 
     _asyncDataGuard.lock();
-    _asyncData.push_back( std::make_shared<FrameSetupData>( *width, *height, vlc::DEF_CHROMA ) );
+    _asyncData.push_back(
+        std::make_shared<I420FrameSetupData>( *width, *height,
+                                              _uPlaneOffset,
+                                              _vPlaneOffset,
+                                              _tmpFrameBuffer.size() ) );
     _asyncDataGuard.unlock();
     uv_async_send( &_async );
 
@@ -211,16 +239,21 @@ void JsVlcPlayer::video_cleanup_cb()
 
 void* JsVlcPlayer::video_lock_cb( void** planes )
 {
+    char* buffer;
     if( _tmpFrameBuffer.empty() ) {
-        *planes = _jsRawFrameBuffer;
+        buffer = _jsRawFrameBuffer;
     } else {
         if( _jsRawFrameBuffer ) {
             std::vector<char>().swap( _tmpFrameBuffer );
-            *planes = _jsRawFrameBuffer;
+            buffer = _jsRawFrameBuffer;
         } else {
-            *planes = _tmpFrameBuffer.data();
+            buffer = _tmpFrameBuffer.data();
         }
     }
+
+    planes[0] = buffer;
+    planes[1] = buffer + _uPlaneOffset;
+    planes[2] = buffer + _vPlaneOffset;
 
     return nullptr;
 }
@@ -258,14 +291,14 @@ void JsVlcPlayer::handleAsync()
     }
 }
 
-void JsVlcPlayer::setupBuffer( unsigned width, unsigned height, const std::string& pixelFormat )
+void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
 {
     using namespace v8;
 
-    if( 0 == width || 0 == height )
+    if( 0 == frameData.width || 0 == frameData.height )
         return;
 
-    const unsigned frameBufferSize = width * height * vlc::DEF_PIXEL_BYTES;
+    assert( frameData.uPlaneOffset && frameData.vPlaneOffset && frameData.size );
 
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
@@ -278,17 +311,21 @@ void JsVlcPlayer::setupBuffer( unsigned width, unsigned height, const std::strin
                                  "Uint8Array",
                                  v8::String::kInternalizedString ) );
     Local<Value> argv[] =
-        { Integer::NewFromUnsigned( isolate, frameBufferSize ) };
+        { Integer::NewFromUnsigned( isolate, frameData.size ) };
     Local<Object> jsArray =
         Handle<Function>::Cast( abv )->NewInstance( 1, argv );
 
-    Local<Integer> jsWidth = Integer::New( isolate, width );
-    Local<Integer> jsHeight = Integer::New( isolate, height );
-    Local<String> jsPixelFormat = String::NewFromUtf8( isolate, pixelFormat.c_str() );
+    Local<Integer> jsWidth = Integer::New( isolate, frameData.width );
+    Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
+    Local<String> jsPixelFormat = String::NewFromUtf8( isolate, "I420" );
 
     jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
     jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
     jsArray->Set( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat );
+    jsArray->Set( String::NewFromUtf8( isolate, "uOffset" ),
+                  Integer::New( isolate, frameData.uPlaneOffset ) );
+    jsArray->Set( String::NewFromUtf8( isolate, "vOffset" ),
+                  Integer::New( isolate, frameData.vPlaneOffset ) );
 
     _jsFrameBuffer.Reset( isolate, jsArray );
 

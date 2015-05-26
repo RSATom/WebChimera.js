@@ -89,13 +89,13 @@ private:
     ~JsVlcPlayer();
 
     struct AsyncData;
-    struct FrameSetupData;
+    struct I420FrameSetupData;
     struct FrameUpdated;
     struct CallbackData;
     struct LibvlcEvent;
 
     void handleAsync();
-    void setupBuffer( unsigned width, unsigned height, const std::string& pixelFormat );
+    void setupBuffer( const I420FrameSetupData& );
     void frameUpdated();
 
     void media_player_event( const libvlc_event_t* e );
@@ -124,6 +124,9 @@ private:
     std::deque<std::shared_ptr<AsyncData> > _asyncData;
 
     std::vector<char> _tmpFrameBuffer;
+    unsigned _uPlaneOffset;
+    unsigned _vPlaneOffset;
+
     v8::Persistent<v8::Value> _jsFrameBuffer;
     char* _jsRawFrameBuffer;
 
