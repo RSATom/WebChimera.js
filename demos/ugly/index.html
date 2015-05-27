@@ -6,11 +6,10 @@ body,html{width: 100%; height: 100%;padding: 0px;margin:0px;}
 var gl;
 var program;
 
-var wcAddon;
 var vlcPlayer;
-var vOffset, uOffset;
 
-function Texture(gl, width, height) {
+function Texture(gl, width, height)
+{
     this.gl = gl;
     this.width = width; this.height = height;
 
@@ -24,18 +23,21 @@ function Texture(gl, width, height) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 }
-Texture.prototype.bind = function (n, program, name) {
+
+Texture.prototype.bind = function (n, program, name)
+{
     var gl = this.gl;
     gl.activeTexture([gl.TEXTURE0, gl.TEXTURE1, gl.TEXTURE2][n]);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.uniform1i(gl.getUniformLocation(program, name), n);
-};
-Texture.prototype.fill = function (data) {
+}
+
+Texture.prototype.fill = function (data)
+{
     var gl = this.gl;
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, this.width, this.height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, data);
-};
-
+}
 
 function glCanvas()
 {
@@ -66,14 +68,33 @@ function frameSetup(width, height, pixelFormat)
 
     gl = canvas.getContext("webgl");
 
-    var vertexShaderSource =["attribute highp vec4 aVertexPosition;", "attribute vec2 aTextureCoord;", "varying highp vec2 vTextureCoord;", "void main(void) {", " gl_Position = aVertexPosition;", " vTextureCoord = aTextureCoord;", "}"].join("\n");
+    var vertexShaderSource = [
+        "attribute highp vec4 aVertexPosition;",
+        "attribute vec2 aTextureCoord;",
+        "varying highp vec2 vTextureCoord;",
+        "void main(void) {",
+        " gl_Position = aVertexPosition;",
+        " vTextureCoord = aTextureCoord;", "}"].join("\n");
 
-       var vertexShader = gl.createShader(gl.VERTEX_SHADER);
-       gl.shaderSource(vertexShader, vertexShaderSource);
-       gl.compileShader(vertexShader);
+    var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vertexShader, vertexShaderSource);
+    gl.compileShader(vertexShader);
 
-    var fragmentShaderSource = ["precision highp float;", "varying lowp vec2 vTextureCoord;", "uniform sampler2D YTexture;", "uniform sampler2D UTexture;", "uniform sampler2D VTexture;", "const mat4 YUV2RGB = mat4", "(", " 1.1643828125, 0, 1.59602734375, -.87078515625,", " 1.1643828125, -.39176171875, -.81296875, .52959375,", " 1.1643828125, 2.017234375, 0, -1.081390625,", " 0, 0, 0, 1", ");", "void main(void) {", " gl_FragColor = vec4( texture2D(YTexture, vTextureCoord).x, texture2D(UTexture, vTextureCoord).x, texture2D(VTexture, vTextureCoord).x, 1) * YUV2RGB;", "}"].join("\n");
-
+    var fragmentShaderSource = [
+        "precision highp float;",
+        "varying lowp vec2 vTextureCoord;",
+        "uniform sampler2D YTexture;",
+        "uniform sampler2D UTexture;",
+        "uniform sampler2D VTexture;",
+        "const mat4 YUV2RGB = mat4",
+        "(",
+        " 1.1643828125, 0, 1.59602734375, -.87078515625,",
+        " 1.1643828125, -.39176171875, -.81296875, .52959375,",
+        " 1.1643828125, 2.017234375, 0, -1.081390625,",
+        " 0, 0, 0, 1",
+        ");", "void main(void) {",
+        " gl_FragColor = vec4( texture2D(YTexture, vTextureCoord).x, texture2D(UTexture, vTextureCoord).x, texture2D(VTexture, vTextureCoord).x, 1) * YUV2RGB;", "}"].join("\n");
+        
     var fragmentShader = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(fragmentShader, fragmentShaderSource);
     gl.compileShader(fragmentShader);
@@ -97,11 +118,15 @@ function frameSetup(width, height, pixelFormat)
     
     var verticesBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, verticesBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,
+                  new Float32Array([1.0, 1.0, 0.0, -1.0, 1.0, 0.0, 1.0, -1.0, 0.0, -1.0, -1.0, 0.0]),
+                  gl.STATIC_DRAW);
 
     var texCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,
+                  new Float32Array([1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 1.0]),
+                  gl.STATIC_DRAW);
 
     y = new Texture(gl, width, height);
     u = new Texture(gl, width >> 1, height >> 1);
@@ -124,7 +149,7 @@ function positionChanged(position) {
 
 function init()
 {
-    wcAddon = require("WebChimera.js");
+    var wcAddon = require("WebChimera.js");
 
     vlcPlayer = wcAddon.createPlayer();
     vlcPlayer.onFrameSetup = frameSetup;
