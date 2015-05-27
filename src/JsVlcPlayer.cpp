@@ -450,18 +450,18 @@ void JsVlcPlayer::initJsApi()
     Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
     vlcPlayerTemplate->SetInternalFieldCount( 1 );
 
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "playing" ),
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playing" ),
                                     jsPlaying );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "length" ),
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "length" ),
                                     jsLength );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "state" ),
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "state" ),
                                     jsState );
 
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "position" ),
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "position" ),
                                     jsPosition, jsSetPosition );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "time" ),
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "time" ),
                                     jsTime, jsSetTime );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), "volume" ),
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "volume" ),
                                     jsVolume, jsSetVolume );
 
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FrameSetup );
