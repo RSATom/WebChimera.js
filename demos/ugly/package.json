@@ -4,7 +4,13 @@
     "private": true,
     "main": "app://host/index.html",
     "dependencies": {
-        "bindings": "~1.2.1"
+        "bindings": "~1.2.1",
+        "WebChimera.js": "file:../.."
+    },
+    "cmake-js": {
+        "runtime": "nw",
+        "runtimeVersion": "0.12.1",
+        "arch": "ia32"
     },
     "env": "development"
 }
