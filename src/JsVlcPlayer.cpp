@@ -450,6 +450,23 @@ void JsVlcPlayer::initJsApi()
     Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
     vlcPlayerTemplate->SetInternalFieldCount( 1 );
 
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial" ),
+                            Number::New( isolate, libvlc_NothingSpecial ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Opening" ),
+                            Number::New( isolate, libvlc_Opening ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Buffering" ),
+                            Number::New( isolate, libvlc_Buffering ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Playing" ),
+                            Number::New( isolate, libvlc_Playing ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Paused" ),
+                            Number::New( isolate, libvlc_Paused ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Stopped" ),
+                            Number::New( isolate, libvlc_Stopped ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Ended" ),
+                            Number::New( isolate, libvlc_Ended ), ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Error" ),
+                            Number::New( isolate, libvlc_Error ), ReadOnly );
+
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playing" ),
                                     jsPlaying );
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "length" ),
