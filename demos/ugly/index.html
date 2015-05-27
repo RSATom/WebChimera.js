@@ -132,7 +132,7 @@ function positionChanged(position) {
 
 function init()
 {
-    wcAddon = require('../../build/Release/WebChimera.js.node');
+    wcAddon = require("WebChimera.js");
 
     vlcPlayer = wcAddon.createPlayer();
     vlcPlayer.onFrameSetup = frameSetup;
