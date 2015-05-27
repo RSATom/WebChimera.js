@@ -1,9 +1,17 @@
 {
   "name": "WebChimera.js",
+  "description": "libvlc binding",
   "version": "0.1.0",
-  "cmake-js": {
-    "runtime": "nw",
-    "runtimeVersion": "0.12.1",
-    "arch": "ia32"
+  "license" : "LGPL-2.1",
+  "author": "Sergey Radionov <rsatom@gmail.com>",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/RSATom/WebChimera.js"
+  },
+  "dependencies": {
+    "cmake-js": "*"
+  },
+  "scripts": {
+    "install": "cmake-js rebuild"
   }
 }
