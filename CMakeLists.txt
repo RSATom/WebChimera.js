@@ -30,6 +30,8 @@ if( MSVC )
     target_link_libraries( ${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc-sdk/lib/msvc/libvlc.lib )
 elseif( APPLE )
     target_link_libraries( ${PROJECT_NAME} /Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib )
+else()
+    target_link_libraries( ${PROJECT_NAME} vlc )
 endif()
 
 #get_cmake_property( _variableNames VARIABLES )
