@@ -154,7 +154,7 @@ function init()
     vlcPlayer = wcAddon.createPlayer();
     vlcPlayer.onFrameSetup = frameSetup;
     vlcPlayer.onPositionChanged = positionChanged;
-    vlcPlayer.play(process.env.VIDEO || "file:///f:/video/1.avi");
+    vlcPlayer.play(process.env.VIDEO || "http://download.blender.org/peach/bigbuckbunny_movies/big_buck_bunny_480p_stereo.avi");
 }
 
 </script>
