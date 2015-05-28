@@ -9,8 +9,7 @@
     },
     "cmake-js": {
         "runtime": "nw",
-        "runtimeVersion": "0.12.1",
-        "arch": "ia32"
+        "runtimeVersion": "0.12.1"
     },
     "env": "development"
 }
