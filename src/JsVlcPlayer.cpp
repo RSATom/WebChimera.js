@@ -172,8 +172,154 @@ void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+class JsVlcPlayer::VideoFrame
+{
+public:
+    virtual unsigned video_format_cb( char* chroma,
+                                      unsigned* width, unsigned* height,
+                                      unsigned* pitches, unsigned* lines,
+                                      std::shared_ptr<AsyncData>* asyncData ) = 0;
+    virtual void* video_lock_cb( char* jsRawFrameBuffer, void** planes ) = 0;
+    void video_cleanup_cb();
+
+protected:
+    std::vector<char> _tmpFrameBuffer;
+};
+
+void JsVlcPlayer::VideoFrame::video_cleanup_cb()
+{
+    if( !_tmpFrameBuffer.empty() )
+        std::vector<char>().swap( _tmpFrameBuffer );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+class JsVlcPlayer::RV32VideoFrame : public JsVlcPlayer::VideoFrame
+{
+    unsigned video_format_cb( char* chroma,
+                              unsigned* width, unsigned* height,
+                              unsigned* pitches, unsigned* lines,
+                              std::shared_ptr<AsyncData>* asyncData ) override;
+    void* video_lock_cb( char* jsRawFrameBuffer, void** planes ) override;
+};
+
+unsigned JsVlcPlayer::RV32VideoFrame::video_format_cb( char* chroma,
+                                                       unsigned* width, unsigned* height,
+                                                       unsigned* pitches, unsigned* lines,
+                                                       std::shared_ptr<AsyncData>* asyncData  )
+{
+    memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
+    *pitches = *width * vlc::DEF_PIXEL_BYTES;
+    *lines = *height;
+
+    _tmpFrameBuffer.resize( *pitches * *lines );
+
+    if( asyncData ) {
+        *asyncData =
+            std::make_shared<RV32FrameSetupData>( *width, *height, _tmpFrameBuffer.size() );
+    }
+
+    return 1;
+}
+
+void* JsVlcPlayer::RV32VideoFrame::video_lock_cb( char* jsRawFrameBuffer, void** planes )
+{
+    char* buffer;
+    if( _tmpFrameBuffer.empty() ) {
+        buffer = jsRawFrameBuffer;
+    } else {
+        if( jsRawFrameBuffer ) {
+            std::vector<char>().swap( _tmpFrameBuffer );
+            buffer = jsRawFrameBuffer;
+        } else {
+            buffer = _tmpFrameBuffer.data();
+        }
+    }
+
+    *planes = buffer;
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+class JsVlcPlayer::I420VideoFrame : public JsVlcPlayer::VideoFrame
+{
+public:
+    unsigned video_format_cb( char* chroma,
+                              unsigned* width, unsigned* height,
+                              unsigned* pitches, unsigned* lines,
+                              std::shared_ptr<AsyncData>* asyncData ) override;
+    void* video_lock_cb( char* jsRawFrameBuffer, void** planes ) override;
+
+protected:
+    unsigned _uPlaneOffset;
+    unsigned _vPlaneOffset;
+};
+
+unsigned JsVlcPlayer::I420VideoFrame::video_format_cb( char* chroma,
+                                                       unsigned* width, unsigned* height,
+                                                       unsigned* pitches, unsigned* lines,
+                                                       std::shared_ptr<AsyncData>* asyncData )
+{
+    const char CHROMA[] = "I420";
+
+    memcpy( chroma, CHROMA, sizeof( CHROMA ) - 1 );
+
+    const unsigned evenWidth = *width + ( *width & 1 );
+    const unsigned evenHeight = *height + ( *height & 1 );
+
+    pitches[0] = evenWidth; if( pitches[0] % 4 ) pitches[0] += 4 - pitches[0] % 4;
+    pitches[1] = evenWidth / 2; if( pitches[1] % 4 ) pitches[1] += 4 - pitches[1] % 4;
+    pitches[2] = pitches[1];
+
+    assert( 0 == pitches[0] % 4 && 0 == pitches[1] % 4 && 0 == pitches[2] % 4 );
+
+    lines[0] = evenHeight;
+    lines[1] = evenHeight / 2;
+    lines[2] = lines[1];
+
+    _uPlaneOffset = pitches[0] * lines[0];
+    _vPlaneOffset = _uPlaneOffset + pitches[1] * lines[1];
+
+    _tmpFrameBuffer.resize( pitches[0] * lines[0] +
+                            pitches[1] * lines[1] +
+                            pitches[2] * lines[2] );
+
+    if( asyncData ) {
+        *asyncData =
+            std::make_shared<I420FrameSetupData>( *width, *height,
+                                                  _uPlaneOffset,
+                                                  _vPlaneOffset,
+                                                  _tmpFrameBuffer.size() );
+    }
+
+    return 3;
+}
+
+void* JsVlcPlayer::I420VideoFrame::video_lock_cb( char* jsRawFrameBuffer, void** planes )
+{
+    char* buffer;
+    if( _tmpFrameBuffer.empty() ) {
+        buffer = jsRawFrameBuffer;
+    } else {
+        if( jsRawFrameBuffer ) {
+            std::vector<char>().swap( _tmpFrameBuffer );
+            buffer = jsRawFrameBuffer;
+        } else {
+            buffer = _tmpFrameBuffer.data();
+        }
+    }
+
+    planes[0] = buffer;
+    planes[1] = buffer + _uPlaneOffset;
+    planes[2] = buffer + _vPlaneOffset;
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 JsVlcPlayer::JsVlcPlayer() :
-    _libvlc( nullptr ), _jsRawFrameBuffer( nullptr )
+    _libvlc( nullptr ), _videoFrame( std::make_unique<I420VideoFrame>() ),
+    _jsRawFrameBuffer( nullptr )
 {
     _libvlc = libvlc_new( 0, nullptr );
     assert( _libvlc );
@@ -208,72 +354,35 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
                                        unsigned* width, unsigned* height,
                                        unsigned* pitches, unsigned* lines )
 {
-    const char CHROMA[] = "I420";
+    std::shared_ptr<AsyncData> asyncData;
+    unsigned planeCount = _videoFrame->video_format_cb( chroma,
+                                                        width, height,
+                                                        pitches, lines,
+                                                        &asyncData );
+    if( asyncData ) {
+        _asyncDataGuard.lock();
+        _asyncData.push_back( asyncData );
+        _asyncDataGuard.unlock();
 
-    memcpy( chroma, CHROMA, sizeof( CHROMA ) - 1 );
-
-    const unsigned evenWidth = *width + ( *width & 1 );
-    const unsigned evenHeight = *height + ( *height & 1 );
-
-    pitches[0] = evenWidth; if( pitches[0] % 4 ) pitches[0] += 4 - pitches[0] % 4;
-    pitches[1] = evenWidth / 2; if( pitches[1] % 4 ) pitches[1] += 4 - pitches[1] % 4;
-    pitches[2] = pitches[1];
-
-    assert( 0 == pitches[0] % 4 && 0 == pitches[1] % 4 && 0 == pitches[2] % 4 );
-
-    lines[0] = evenHeight;
-    lines[1] = evenHeight / 2;
-    lines[2] = lines[1];
-
-    _uPlaneOffset = pitches[0] * lines[0];
-    _vPlaneOffset = _uPlaneOffset + pitches[1] * lines[1];
-
-    _tmpFrameBuffer.resize( pitches[0] * lines[0] +
-                            pitches[1] * lines[1] +
-                            pitches[2] * lines[2] );
-
-    _asyncDataGuard.lock();
-    _asyncData.push_back(
-        std::make_shared<I420FrameSetupData>( *width, *height,
-                                              _uPlaneOffset,
-                                              _vPlaneOffset,
-                                              _tmpFrameBuffer.size() ) );
-    _asyncDataGuard.unlock();
-    uv_async_send( &_async );
-
-    return 1;
+        uv_async_send( &_async );
+    }
+    return planeCount;
 }
 
 void JsVlcPlayer::video_cleanup_cb()
 {
-    if( !_tmpFrameBuffer.empty() )
-        std::vector<char>().swap( _tmpFrameBuffer );
+    _videoFrame->video_cleanup_cb();
 
     _asyncDataGuard.lock();
     _asyncData.push_back( std::make_shared<CallbackData>( CB_FrameCleanup ) );
     _asyncDataGuard.unlock();
+
     uv_async_send( &_async );
 }
 
 void* JsVlcPlayer::video_lock_cb( void** planes )
 {
-    char* buffer;
-    if( _tmpFrameBuffer.empty() ) {
-        buffer = _jsRawFrameBuffer;
-    } else {
-        if( _jsRawFrameBuffer ) {
-            std::vector<char>().swap( _tmpFrameBuffer );
-            buffer = _jsRawFrameBuffer;
-        } else {
-            buffer = _tmpFrameBuffer.data();
-        }
-    }
-
-    planes[0] = buffer;
-    planes[1] = buffer + _uPlaneOffset;
-    planes[2] = buffer + _vPlaneOffset;
-
-    return nullptr;
+    return _videoFrame->video_lock_cb( _jsRawFrameBuffer, planes );
 }
 
 void JsVlcPlayer::video_unlock_cb( void* /*picture*/, void *const * /*planes*/ )

@@ -96,6 +96,10 @@ private:
     struct CallbackData;
     struct LibvlcEvent;
 
+    class VideoFrame;
+    class RV32VideoFrame;
+    class I420VideoFrame;
+
     void handleAsync();
     void setupBuffer( const RV32FrameSetupData& );
     void setupBuffer( const I420FrameSetupData& );
@@ -126,9 +130,7 @@ private:
     std::mutex _asyncDataGuard;
     std::deque<std::shared_ptr<AsyncData> > _asyncData;
 
-    std::vector<char> _tmpFrameBuffer;
-    unsigned _uPlaneOffset;
-    unsigned _vPlaneOffset;
+    std::unique_ptr<VideoFrame> _videoFrame;
 
     v8::Persistent<v8::Value> _jsFrameBuffer;
     char* _jsRawFrameBuffer;
