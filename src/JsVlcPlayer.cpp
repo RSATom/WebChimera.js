@@ -161,8 +161,8 @@ void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
         }
         case libvlc_MediaPlayerLengthChanged: {
             callback = CB_MediaPlayerLengthChanged;
-           const double new_length =
-               static_cast<double>( libvlcEvent.u.media_player_length_changed.new_length );
+            const double new_length =
+                static_cast<double>( libvlcEvent.u.media_player_length_changed.new_length );
             list = { Number::New( isolate, new_length ) };
             break;
         }
@@ -666,7 +666,8 @@ void JsVlcPlayer::jsLength( v8::Local<v8::String> property,
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
     vlc::player& player = jsPlayer->_player;
 
-    info.GetReturnValue().Set( Number::New( isolate, static_cast<double>( player.get_length() ) ) );
+    info.GetReturnValue().Set(
+        Number::New( isolate, static_cast<double>( player.get_length() ) ) );
 }
 
 void JsVlcPlayer::jsState( v8::Local<v8::String> property,
@@ -725,7 +726,8 @@ void JsVlcPlayer::jsTime( v8::Local<v8::String> property,
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
     vlc::player& player = jsPlayer->_player;
 
-    info.GetReturnValue().Set( Number::New( isolate, static_cast<double>( player.get_time() ) ) );
+    info.GetReturnValue().Set(
+        Number::New( isolate, static_cast<double>( player.get_time() ) ) );
 }
 
 void JsVlcPlayer::jsSetTime( v8::Local<v8::String> property,
