@@ -111,9 +111,11 @@ void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
         case libvlc_MediaPlayerOpening:
             callback = CB_MediaPlayerOpening;
             break;
-        case libvlc_MediaPlayerBuffering:
+        case libvlc_MediaPlayerBuffering: {
             callback = CB_MediaPlayerBuffering;
+            list = { Number::New( isolate, libvlcEvent.u.media_player_buffering.new_cache ) };
             break;
+        }
         case libvlc_MediaPlayerPlaying:
             callback = CB_MediaPlayerPlaying;
             break;
