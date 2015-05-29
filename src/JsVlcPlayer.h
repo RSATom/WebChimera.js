@@ -42,9 +42,20 @@ class JsVlcPlayer :
         CB_Max,
     };
 
+    enum class PixelFormat {
+        RV32 = 0,
+        I420,
+    };
+
 public:
     static void initJsApi();
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
+
+    static void jsPixelFormat( v8::Local<v8::String> property,
+                               const v8::PropertyCallbackInfo<v8::Value>& info );
+    static void jsSetPixelFormat( v8::Local<v8::String> property,
+                                  v8::Local<v8::Value> value,
+                                  const v8::PropertyCallbackInfo<void>& info );
 
     static void jsPlaying( v8::Local<v8::String> property,
                            const v8::PropertyCallbackInfo<v8::Value>& info );
@@ -130,6 +141,7 @@ private:
     std::mutex _asyncDataGuard;
     std::deque<std::shared_ptr<AsyncData> > _asyncData;
 
+    PixelFormat _pixelFormat;
     std::unique_ptr<VideoFrame> _videoFrame;
 
     v8::Persistent<v8::Value> _jsFrameBuffer;

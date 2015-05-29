@@ -320,7 +320,7 @@ void* JsVlcPlayer::I420VideoFrame::video_lock_cb( char* jsRawFrameBuffer, void**
 
 ///////////////////////////////////////////////////////////////////////////////
 JsVlcPlayer::JsVlcPlayer() :
-    _libvlc( nullptr ), _videoFrame( std::make_unique<I420VideoFrame>() ),
+    _libvlc( nullptr ), _pixelFormat( PixelFormat::I420 ),
     _jsRawFrameBuffer( nullptr )
 {
     _libvlc = libvlc_new( 0, nullptr );
@@ -356,6 +356,15 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
                                        unsigned* width, unsigned* height,
                                        unsigned* pitches, unsigned* lines )
 {
+    switch( _pixelFormat ) {
+        case PixelFormat::RV32:
+            _videoFrame = std::make_unique<RV32VideoFrame>();
+            break;
+        case PixelFormat::I420:
+            _videoFrame = std::make_unique<I420VideoFrame>();
+            break;
+    }
+
     std::shared_ptr<AsyncData> asyncData;
     unsigned planeCount = _videoFrame->video_format_cb( chroma,
                                                         width, height,
@@ -446,7 +455,7 @@ void JsVlcPlayer::setupBuffer( const RV32FrameSetupData& frameData )
 
     Local<Integer> jsWidth = Integer::New( isolate, frameData.width );
     Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
-    Local<String> jsPixelFormat = String::NewFromUtf8( isolate, vlc::DEF_CHROMA );
+    Local<Integer> jsPixelFormat = Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) );
 
     jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
     jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
@@ -486,7 +495,7 @@ void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
 
     Local<Integer> jsWidth = Integer::New( isolate, frameData.width );
     Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
-    Local<String> jsPixelFormat = String::NewFromUtf8( isolate, "I420" );
+    Local<Integer> jsPixelFormat = Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) );
 
     jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
     jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
@@ -561,6 +570,13 @@ void JsVlcPlayer::initJsApi()
     Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
     vlcPlayerTemplate->SetInternalFieldCount( 1 );
 
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "RV32" ),
+                            Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) ),
+                            ReadOnly );
+    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "I420" ),
+                            Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) ),
+                            ReadOnly );
+
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial" ),
                             Integer::New( isolate, libvlc_NothingSpecial ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Opening" ),
@@ -577,6 +593,9 @@ void JsVlcPlayer::initJsApi()
                             Integer::New( isolate, libvlc_Ended ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Error" ),
                             Integer::New( isolate, libvlc_Error ), ReadOnly );
+
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "pixelFormat" ),
+                                    jsPixelFormat, jsSetPixelFormat );
 
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playing" ),
                                     jsPlaying );
@@ -638,6 +657,45 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
         Local<Function> constructor =
             Local<Function>::New( isolate, _jsConstructor );
         args.GetReturnValue().Set( constructor->NewInstance( 0, nullptr ) );
+    }
+}
+
+void JsVlcPlayer::jsPixelFormat( v8::Local<v8::String> property,
+                                 const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+
+    info.GetReturnValue().Set(
+        Integer::New( isolate,
+                      static_cast<int>( jsPlayer->_pixelFormat ) ) );
+}
+
+void JsVlcPlayer::jsSetPixelFormat( v8::Local<v8::String> property,
+                                    v8::Local<v8::Value> value,
+                                    const v8::PropertyCallbackInfo<void>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+
+    Local<Integer> jsPixelFormat = Local<Integer>::Cast( value );
+    if( !jsPixelFormat.IsEmpty() ) {
+        switch( jsPixelFormat->Value() ) {
+            case PixelFormat::RV32:
+                jsPlayer->_pixelFormat = PixelFormat::RV32;
+                break;
+            case PixelFormat::I420:
+                jsPlayer->_pixelFormat = PixelFormat::I420;
+                break;
+        }
     }
 }
 
