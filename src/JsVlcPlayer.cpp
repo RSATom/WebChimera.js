@@ -562,21 +562,21 @@ void JsVlcPlayer::initJsApi()
     vlcPlayerTemplate->SetInternalFieldCount( 1 );
 
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial" ),
-                            Number::New( isolate, libvlc_NothingSpecial ), ReadOnly );
+                            Integer::New( isolate, libvlc_NothingSpecial ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Opening" ),
-                            Number::New( isolate, libvlc_Opening ), ReadOnly );
+                            Integer::New( isolate, libvlc_Opening ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Buffering" ),
-                            Number::New( isolate, libvlc_Buffering ), ReadOnly );
+                            Integer::New( isolate, libvlc_Buffering ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Playing" ),
-                            Number::New( isolate, libvlc_Playing ), ReadOnly );
+                            Integer::New( isolate, libvlc_Playing ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Paused" ),
-                            Number::New( isolate, libvlc_Paused ), ReadOnly );
+                            Integer::New( isolate, libvlc_Paused ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Stopped" ),
-                            Number::New( isolate, libvlc_Stopped ), ReadOnly );
+                            Integer::New( isolate, libvlc_Stopped ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Ended" ),
-                            Number::New( isolate, libvlc_Ended ), ReadOnly );
+                            Integer::New( isolate, libvlc_Ended ), ReadOnly );
     vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Error" ),
-                            Number::New( isolate, libvlc_Error ), ReadOnly );
+                            Integer::New( isolate, libvlc_Error ), ReadOnly );
 
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playing" ),
                                     jsPlaying );
@@ -681,7 +681,7 @@ void JsVlcPlayer::jsState( v8::Local<v8::String> property,
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
     vlc::player& player = jsPlayer->_player;
 
-    info.GetReturnValue().Set( Number::New( isolate, player.get_state() ) );
+    info.GetReturnValue().Set( Integer::New( isolate, player.get_state() ) );
 }
 
 void JsVlcPlayer::jsPosition( v8::Local<v8::String> property,
@@ -773,7 +773,7 @@ void JsVlcPlayer::jsSetVolume( v8::Local<v8::String> property,
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
     vlc::player& player = jsPlayer->_player;
 
-    Local<Number> jsVolume = Local<Number>::Cast( value );
+    Local<Integer> jsVolume = Local<Integer>::Cast( value );
     if( !jsVolume.IsEmpty() && jsVolume->Value() > 0 )
         player.audio().set_volume( static_cast<unsigned>( jsVolume->Value() ) );
 }
