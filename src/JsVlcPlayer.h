@@ -17,7 +17,7 @@ class JsVlcPlayer :
     private vlc::media_player_events_callback
 {
     enum Callbacks_e {
-        CB_FrameSetup,
+        CB_FrameSetup = 0,
         CB_FrameReady,
         CB_FrameCleanup,
 
