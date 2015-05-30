@@ -4,7 +4,6 @@
     "private": true,
     "main": "app://host/index.html",
     "dependencies": {
-        "bindings": "~1.2.1",
         "WebChimera.js": "file:../.."
     },
     "cmake-js": {
