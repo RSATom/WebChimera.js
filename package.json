@@ -9,6 +9,7 @@
     "url" : "https://github.com/RSATom/WebChimera.js"
   },
   "dependencies": {
+    "bindings": "~1.2.1",
     "cmake-js": "*"
   },
   "scripts": {
