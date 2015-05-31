@@ -689,10 +689,10 @@ void JsVlcPlayer::jsSetPixelFormat( v8::Local<v8::String> property,
     Local<Integer> jsPixelFormat = Local<Integer>::Cast( value );
     if( !jsPixelFormat.IsEmpty() ) {
         switch( jsPixelFormat->Value() ) {
-            case PixelFormat::RV32:
+            case static_cast<decltype( jsPixelFormat->Value() )>( PixelFormat::RV32 ):
                 jsPlayer->_pixelFormat = PixelFormat::RV32;
                 break;
-            case PixelFormat::I420:
+            case static_cast<decltype( jsPixelFormat->Value() )>( PixelFormat::I420 ):
                 jsPlayer->_pixelFormat = PixelFormat::I420;
                 break;
         }
