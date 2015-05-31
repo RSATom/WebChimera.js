@@ -358,10 +358,10 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
 {
     switch( _pixelFormat ) {
         case PixelFormat::RV32:
-            _videoFrame = std::make_unique<RV32VideoFrame>();
+            _videoFrame.reset( new RV32VideoFrame() );
             break;
         case PixelFormat::I420:
-            _videoFrame = std::make_unique<I420VideoFrame>();
+            _videoFrame.reset( new I420VideoFrame() );
             break;
     }
 
