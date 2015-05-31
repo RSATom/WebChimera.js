@@ -1,4 +1,5 @@
 node_modules/
 build/
 build_*/
+Release/
 CMakeLists.txt.user
