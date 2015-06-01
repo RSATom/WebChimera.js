@@ -352,6 +352,8 @@ JsVlcPlayer::~JsVlcPlayer()
 
     _async.data = nullptr;
     uv_close( reinterpret_cast<uv_handle_t*>( &_async ), 0 );
+
+    libvlc_release( _libvlc );
 }
 
 unsigned JsVlcPlayer::video_format_cb( char* chroma,
