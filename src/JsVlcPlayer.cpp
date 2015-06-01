@@ -345,6 +345,8 @@ JsVlcPlayer::JsVlcPlayer() :
 
 JsVlcPlayer::~JsVlcPlayer()
 {
+    _player.stop();
+
     _player.unregister_callback( this );
     vlc::basic_vmem_wrapper::close();
 
