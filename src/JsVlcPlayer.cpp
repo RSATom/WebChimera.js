@@ -386,6 +386,7 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
 
 void JsVlcPlayer::video_cleanup_cb()
 {
+    _jsRawFrameBuffer = nullptr;
     _videoFrame->video_cleanup_cb();
 
     _asyncDataGuard.lock();
