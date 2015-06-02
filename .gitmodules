@@ -4,3 +4,6 @@
 [submodule "deps/libvlc-sdk"]
 	path = deps/libvlc-sdk
 	url = https://github.com/RSATom/libvlc-sdk.git
+[submodule "demos/ugly"]
+	path = demos/ugly
+	url = https://github.com/RSATom/wcjs-ugly-demo.git
