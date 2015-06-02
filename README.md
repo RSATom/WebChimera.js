@@ -27,7 +27,7 @@ Install dev dependencies and cmake
 
 For apt based distros
 ```bash
-$ sudo apt-get install build-essentials cmake libvlc-dev
+$ sudo apt-get install build-essential cmake libvlc-dev
 ```
 
 Run npm install script
