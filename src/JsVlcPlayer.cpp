@@ -374,6 +374,8 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
                                                         width, height,
                                                         pitches, lines,
                                                         &asyncData );
+    _jsRawFrameBuffer = nullptr;
+
     if( asyncData ) {
         _asyncDataGuard.lock();
         _asyncData.push_back( asyncData );
