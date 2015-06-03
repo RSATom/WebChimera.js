@@ -180,7 +180,7 @@ public:
     virtual unsigned video_format_cb( char* chroma,
                                       unsigned* width, unsigned* height,
                                       unsigned* pitches, unsigned* lines,
-                                      std::shared_ptr<AsyncData>* asyncData ) = 0;
+                                      std::unique_ptr<AsyncData>* asyncData ) = 0;
     virtual void* video_lock_cb( char* jsRawFrameBuffer, void** planes ) = 0;
     void video_cleanup_cb();
 
@@ -200,14 +200,14 @@ class JsVlcPlayer::RV32VideoFrame : public JsVlcPlayer::VideoFrame
     unsigned video_format_cb( char* chroma,
                               unsigned* width, unsigned* height,
                               unsigned* pitches, unsigned* lines,
-                              std::shared_ptr<AsyncData>* asyncData ) override;
+                              std::unique_ptr<AsyncData>* asyncData ) override;
     void* video_lock_cb( char* jsRawFrameBuffer, void** planes ) override;
 };
 
 unsigned JsVlcPlayer::RV32VideoFrame::video_format_cb( char* chroma,
                                                        unsigned* width, unsigned* height,
                                                        unsigned* pitches, unsigned* lines,
-                                                       std::shared_ptr<AsyncData>* asyncData  )
+                                                       std::unique_ptr<AsyncData>* asyncData  )
 {
     memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
     *pitches = *width * vlc::DEF_PIXEL_BYTES;
@@ -216,8 +216,7 @@ unsigned JsVlcPlayer::RV32VideoFrame::video_format_cb( char* chroma,
     _tmpFrameBuffer.resize( *pitches * *lines );
 
     if( asyncData ) {
-        *asyncData =
-            std::make_shared<RV32FrameSetupData>( *width, *height, _tmpFrameBuffer.size() );
+        asyncData->reset( new RV32FrameSetupData( *width, *height, _tmpFrameBuffer.size() ) );
     }
 
     return 1;
@@ -249,7 +248,7 @@ public:
     unsigned video_format_cb( char* chroma,
                               unsigned* width, unsigned* height,
                               unsigned* pitches, unsigned* lines,
-                              std::shared_ptr<AsyncData>* asyncData ) override;
+                              std::unique_ptr<AsyncData>* asyncData ) override;
     void* video_lock_cb( char* jsRawFrameBuffer, void** planes ) override;
 
 protected:
@@ -260,7 +259,7 @@ protected:
 unsigned JsVlcPlayer::I420VideoFrame::video_format_cb( char* chroma,
                                                        unsigned* width, unsigned* height,
                                                        unsigned* pitches, unsigned* lines,
-                                                       std::shared_ptr<AsyncData>* asyncData )
+                                                       std::unique_ptr<AsyncData>* asyncData )
 {
     const char CHROMA[] = "I420";
 
@@ -287,11 +286,10 @@ unsigned JsVlcPlayer::I420VideoFrame::video_format_cb( char* chroma,
                             pitches[2] * lines[2] );
 
     if( asyncData ) {
-        *asyncData =
-            std::make_shared<I420FrameSetupData>( *width, *height,
+        asyncData->reset( new I420FrameSetupData( *width, *height,
                                                   _uPlaneOffset,
                                                   _vPlaneOffset,
-                                                  _tmpFrameBuffer.size() );
+                                                  _tmpFrameBuffer.size() ) );
     }
 
     return 3;
@@ -369,7 +367,7 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
             break;
     }
 
-    std::shared_ptr<AsyncData> asyncData;
+    std::unique_ptr<AsyncData> asyncData;
     unsigned planeCount = _videoFrame->video_format_cb( chroma,
                                                         width, height,
                                                         pitches, lines,
@@ -378,7 +376,7 @@ unsigned JsVlcPlayer::video_format_cb( char* chroma,
 
     if( asyncData ) {
         _asyncDataGuard.lock();
-        _asyncData.push_back( asyncData );
+        _asyncData.emplace_back( std::move( asyncData ) );
         _asyncDataGuard.unlock();
 
         uv_async_send( &_async );
@@ -392,7 +390,7 @@ void JsVlcPlayer::video_cleanup_cb()
     _videoFrame->video_cleanup_cb();
 
     _asyncDataGuard.lock();
-    _asyncData.push_back( std::make_shared<CallbackData>( CB_FrameCleanup ) );
+    _asyncData.emplace_back( new CallbackData( CB_FrameCleanup ) );
     _asyncDataGuard.unlock();
 
     uv_async_send( &_async );
@@ -410,7 +408,7 @@ void JsVlcPlayer::video_unlock_cb( void* /*picture*/, void *const * /*planes*/ )
 void JsVlcPlayer::video_display_cb( void* /*picture*/ )
 {
     _asyncDataGuard.lock();
-    _asyncData.push_back( std::make_shared<FrameUpdated>() );
+    _asyncData.emplace_back( new FrameUpdated() );
     _asyncDataGuard.unlock();
     uv_async_send( &_async );
 }
@@ -418,7 +416,7 @@ void JsVlcPlayer::video_display_cb( void* /*picture*/ )
 void JsVlcPlayer::media_player_event( const libvlc_event_t* e )
 {
     _asyncDataGuard.lock();
-    _asyncData.push_back( std::make_shared<LibvlcEvent>( *e ) );
+    _asyncData.emplace_back( new LibvlcEvent( *e ) );
     _asyncDataGuard.unlock();
     uv_async_send( &_async );
 }
@@ -426,7 +424,7 @@ void JsVlcPlayer::media_player_event( const libvlc_event_t* e )
 void JsVlcPlayer::handleAsync()
 {
     while( !_asyncData.empty() ) {
-        std::deque<std::shared_ptr<AsyncData> > tmpData;
+        std::deque<std::unique_ptr<AsyncData> > tmpData;
         _asyncDataGuard.lock();
         _asyncData.swap( tmpData );
         _asyncDataGuard.unlock();

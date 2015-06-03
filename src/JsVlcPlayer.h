@@ -139,7 +139,7 @@ private:
 
     uv_async_t _async;
     std::mutex _asyncDataGuard;
-    std::deque<std::shared_ptr<AsyncData> > _asyncData;
+    std::deque<std::unique_ptr<AsyncData> > _asyncData;
 
     PixelFormat _pixelFormat;
     std::unique_ptr<VideoFrame> _videoFrame;
