@@ -142,10 +142,9 @@ private:
     std::deque<std::unique_ptr<AsyncData> > _asyncData;
 
     PixelFormat _pixelFormat;
-    std::unique_ptr<VideoFrame> _videoFrame;
+    std::shared_ptr<VideoFrame> _videoFrame;
 
     v8::Persistent<v8::Value> _jsFrameBuffer;
-    char* _jsRawFrameBuffer;
 
     v8::Persistent<v8::Function> _jsCallbacks[CB_Max];
 };
