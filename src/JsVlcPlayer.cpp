@@ -654,10 +654,11 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    if( args.IsConstructCall() ) {
+    Local<Object> thisObject = args.Holder();
+    if( args.IsConstructCall() && thisObject->InternalFieldCount() > 0 ) {
         JsVlcPlayer* jsPlayer = new JsVlcPlayer;
-        jsPlayer->Wrap( args.This() );
-        args.GetReturnValue().Set( args.This() );
+        jsPlayer->Wrap( thisObject );
+        args.GetReturnValue().Set( thisObject );
     } else {
         Local<Function> constructor =
             Local<Function>::New( isolate, _jsConstructor );
