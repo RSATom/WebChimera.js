@@ -845,18 +845,19 @@ void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     using namespace v8;
 
-    if( args.Length() != 1 )
-        return;
-
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
     vlc::player& player = jsPlayer->_player;
 
-    String::Utf8Value mrl( args[0]->ToString() );
-    if( mrl.length() ) {
-        player.clear_items();
-        const int idx = player.add_media( *mrl );
-        if( idx >= 0 ) {
-            player.play( idx );
+    if( args.Length() == 0 ) {
+        player.play();
+    } else if( args.Length() ==  1 ) {
+        String::Utf8Value mrl( args[0]->ToString() );
+        if( mrl.length() ) {
+            player.clear_items();
+            const int idx = player.add_media( *mrl );
+            if( idx >= 0 ) {
+                player.play( idx );
+            }
         }
     }
 }
