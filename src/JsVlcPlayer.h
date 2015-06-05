@@ -132,7 +132,7 @@ private:
     void video_display_cb( void* picture ) override;
 
 private:
-    static v8::Persistent<v8::Function> _jsConstructor;
+    static v8::UniquePersistent<v8::Function> _jsConstructor;
 
     libvlc_instance_t* _libvlc;
     vlc::player _player;
@@ -144,7 +144,7 @@ private:
     PixelFormat _pixelFormat;
     std::shared_ptr<VideoFrame> _videoFrame;
 
-    v8::Persistent<v8::Value> _jsFrameBuffer;
+    v8::UniquePersistent<v8::Value> _jsFrameBuffer;
 
-    v8::Persistent<v8::Function> _jsCallbacks[CB_Max];
+    v8::UniquePersistent<v8::Function> _jsCallbacks[CB_Max];
 };
