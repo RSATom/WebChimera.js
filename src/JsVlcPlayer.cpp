@@ -638,6 +638,8 @@ void JsVlcPlayer::initJsApi()
                                     jsTime, jsSetTime );
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "volume" ),
                                     jsVolume, jsSetVolume );
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "mute" ),
+                                    jsMute, jsSetMute );
 
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FrameSetup );
     SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FrameReady );
@@ -863,6 +865,36 @@ void JsVlcPlayer::jsSetVolume( v8::Local<v8::String> property,
     Local<Integer> jsVolume = Local<Integer>::Cast( value );
     if( !jsVolume.IsEmpty() && jsVolume->Value() > 0 )
         player.audio().set_volume( static_cast<unsigned>( jsVolume->Value() ) );
+}
+
+void JsVlcPlayer::jsMute( v8::Local<v8::String> property,
+                          const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    info.GetReturnValue().Set( Boolean::New( isolate, player.audio().is_muted() ) );
+}
+
+void JsVlcPlayer::jsSetMute( v8::Local<v8::String> property,
+                             v8::Local<v8::Value> value,
+                             const v8::PropertyCallbackInfo<void>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+    vlc::player& player = jsPlayer->_player;
+
+    if( !value.IsEmpty() )
+        player.audio().set_mute( value->IsTrue() );
 }
 
 void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )

@@ -82,6 +82,12 @@ public:
                              v8::Local<v8::Value> value,
                              const v8::PropertyCallbackInfo<void>& info );
 
+    static void jsMute( v8::Local<v8::String> property,
+                        const v8::PropertyCallbackInfo<v8::Value>& info );
+    static void jsSetMute( v8::Local<v8::String> property,
+                           v8::Local<v8::Value> value,
+                           const v8::PropertyCallbackInfo<void>& info );
+
     static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
     static void jsPause( const v8::FunctionCallbackInfo<v8::Value>& args );
     static void jsTogglePause( const v8::FunctionCallbackInfo<v8::Value>& args );
