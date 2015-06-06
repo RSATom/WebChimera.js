@@ -4,6 +4,12 @@
   "version": "0.1.4",
   "license" : "LGPL-2.1",
   "author": "Sergey Radionov <rsatom@gmail.com>",
+  "keywords": [
+    "vlc",
+    "libvlc",
+    "video",
+    "player"
+  ],
   "repository": {
     "type" : "git",
     "url" : "https://github.com/RSATom/WebChimera.js"
