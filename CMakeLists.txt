@@ -17,6 +17,7 @@ endif()
 file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     src/[^.]*.cpp
     src/[^.]*.h
+    README.md
     )
 
 include_directories( ${CMAKE_JS_INC} deps deps/libvlc-sdk/include )
