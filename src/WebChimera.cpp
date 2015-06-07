@@ -5,9 +5,7 @@
 
 void Init( v8::Handle<v8::Object> exports )
 {
-    JsVlcPlayer::initJsApi();
-
-    NODE_SET_METHOD( exports, "createPlayer", JsVlcPlayer::jsCreate );
+    JsVlcPlayer::initJsApi( exports );
 }
 
 NODE_MODULE( WebChimera, Init )

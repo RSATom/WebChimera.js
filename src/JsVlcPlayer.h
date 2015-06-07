@@ -48,7 +48,7 @@ class JsVlcPlayer :
     };
 
 public:
-    static void initJsApi();
+    static void initJsApi( const v8::Handle<v8::Object>& exports );
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
     static void jsPixelFormat( v8::Local<v8::String> property,

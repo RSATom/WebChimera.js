@@ -585,7 +585,7 @@ void JsVlcPlayer::callCallback( Callbacks_e callback,
                         argList.size(), argList.data() );
 }
 
-void JsVlcPlayer::initJsApi()
+void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
 {
     using namespace v8;
 
@@ -670,6 +670,8 @@ void JsVlcPlayer::initJsApi()
     NODE_SET_PROTOTYPE_METHOD( ct, "toggleMute", jsToggleMute );
 
     _jsConstructor.Reset( isolate, ct->GetFunction() );
+    exports->Set( String::NewFromUtf8( isolate, "VlcPlayer" ), ct->GetFunction() );
+    exports->Set( String::NewFromUtf8( isolate, "createPlayer" ), ct->GetFunction() );
 }
 
 void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
