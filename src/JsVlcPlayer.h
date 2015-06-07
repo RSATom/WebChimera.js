@@ -107,7 +107,7 @@ public:
                                Callbacks_e callback );
 
 private:
-    JsVlcPlayer();
+    JsVlcPlayer( const v8::Local<v8::Array>& vlcOpts );
     ~JsVlcPlayer();
 
     struct AsyncData;
@@ -122,6 +122,7 @@ private:
     class I420VideoFrame;
 
     static void closeAll();
+    void initLibvlc( const v8::Local<v8::Array>& vlcOpts );
     void close();
 
     void handleAsync();

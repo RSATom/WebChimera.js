@@ -350,14 +350,14 @@ void JsVlcPlayer::closeAll()
     }
 }
 
-JsVlcPlayer::JsVlcPlayer() :
+JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Array>& vlcOpts ) :
     _libvlc( nullptr ), _pixelFormat( PixelFormat::I420 )
 {
     _instances.insert( this );
 
-    _libvlc = libvlc_new( 0, nullptr );
-    assert( _libvlc );
-    if( _player.open( _libvlc ) ) {
+    initLibvlc( vlcOpts );
+
+    if( _libvlc && _player.open( _libvlc ) ) {
         _player.register_callback( this );
         vlc::basic_vmem_wrapper::open( &_player.basic_player() );
     } else {
@@ -375,6 +375,34 @@ JsVlcPlayer::JsVlcPlayer() :
         }
     );
     _async.data = this;
+}
+
+void JsVlcPlayer::initLibvlc( const v8::Local<v8::Array>& vlcOpts )
+{
+    using namespace v8;
+
+    if( _libvlc ) {
+        assert( false );
+        libvlc_release( _libvlc );
+        _libvlc = nullptr;
+    }
+
+    if( vlcOpts.IsEmpty() || vlcOpts->Length() == 0 ) {
+        _libvlc = libvlc_new( 0, nullptr );
+    } else {
+        std::deque<std::string> opts;
+        std::vector<const char*> libvlcOpts;
+
+        for( unsigned i = 0 ; i < vlcOpts->Length(); ++i ) {
+            String::Utf8Value opt( vlcOpts->Get(i)->ToString() );
+            if( opt.length() ) {
+                auto it = opts.emplace( opts.end(), *opt );
+                libvlcOpts.push_back( it->c_str() );
+            }
+        }
+
+        _libvlc = libvlc_new( libvlcOpts.size(), libvlcOpts.data() );
+    }
 }
 
 JsVlcPlayer::~JsVlcPlayer()
@@ -715,13 +743,19 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 
     Local<Object> thisObject = args.Holder();
     if( args.IsConstructCall() && thisObject->InternalFieldCount() > 0 ) {
-        JsVlcPlayer* jsPlayer = new JsVlcPlayer;
+        Local<Array> options;
+        if( args.Length() == 1 && args[0]->IsArray() ) {
+            options = Local<Array>::Cast( args[0] );
+        }
+
+        JsVlcPlayer* jsPlayer = new JsVlcPlayer( options );
         jsPlayer->Wrap( thisObject );
         args.GetReturnValue().Set( thisObject );
     } else {
+        Local<Value> argv[] = { args[0] };
         Local<Function> constructor =
             Local<Function>::New( isolate, _jsConstructor );
-        args.GetReturnValue().Set( constructor->NewInstance( 0, nullptr ) );
+        args.GetReturnValue().Set( constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) );
     }
 }
 
