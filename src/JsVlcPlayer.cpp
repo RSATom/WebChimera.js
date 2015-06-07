@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "JsVlcPlaylist.h"
+
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
 std::set<JsVlcPlayer*> JsVlcPlayer::_instances;
 
@@ -362,6 +364,8 @@ JsVlcPlayer::JsVlcPlayer() :
         assert( false );
     }
 
+    _jsPlaylist = JsVlcPlaylist::create();
+
     uv_loop_t* loop = uv_default_loop();
 
     uv_async_init( loop, &_async,
@@ -611,6 +615,8 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
 {
     node::AtExit( [] ( void* ) { JsVlcPlayer::closeAll(); } );
 
+    JsVlcPlaylist::initJsApi();
+
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
@@ -655,6 +661,8 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
                                     jsLength );
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "state" ),
                                     jsState );
+    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playlist" ),
+                                    jsPlaylist );
 
     vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "position" ),
                                     jsPosition, jsSetPosition );
@@ -797,6 +805,19 @@ void JsVlcPlayer::jsState( v8::Local<v8::String> property,
     vlc::player& player = jsPlayer->_player;
 
     info.GetReturnValue().Set( Integer::New( isolate, player.get_state() ) );
+}
+
+void JsVlcPlayer::jsPlaylist( v8::Local<v8::String> property,
+                           const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
+
+    info.GetReturnValue().Set( Local<Object>::New( isolate, jsPlayer->_jsPlaylist ) );
 }
 
 void JsVlcPlayer::jsPosition( v8::Local<v8::String> property,

@@ -65,6 +65,9 @@ public:
     static void jsState( v8::Local<v8::String> property,
                          const v8::PropertyCallbackInfo<v8::Value>& info );
 
+    static void jsPlaylist( v8::Local<v8::String> property,
+                            const v8::PropertyCallbackInfo<v8::Value>& info );
+
     static void jsPosition( v8::Local<v8::String> property,
                             const v8::PropertyCallbackInfo<v8::Value>& info );
     static void jsSetPosition( v8::Local<v8::String> property,
@@ -158,4 +161,6 @@ private:
     v8::UniquePersistent<v8::Value> _jsFrameBuffer;
 
     v8::UniquePersistent<v8::Function> _jsCallbacks[CB_Max];
+
+    v8::UniquePersistent<v8::Object> _jsPlaylist;
 };

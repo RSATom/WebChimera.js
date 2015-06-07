@@ -7,6 +7,8 @@ class JsVlcPlaylist :
     public node::ObjectWrap
 {
 public:
+    static v8::UniquePersistent<v8::Object> create();
+
     static void initJsApi();
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 

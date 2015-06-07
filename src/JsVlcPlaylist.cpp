@@ -2,6 +2,18 @@
 
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
+v8::UniquePersistent<v8::Object> JsVlcPlaylist::create()
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Local<Function> constructor =
+        Local<Function>::New( isolate, _jsConstructor );
+    return { isolate, constructor->NewInstance( 0, nullptr ) };
+}
+
 void JsVlcPlaylist::initJsApi()
 {
     using namespace v8;
