@@ -2,7 +2,7 @@
 
 #include <string.h>
 
-v8::UniquePersistent<v8::Function> JsVlcPlayer::_jsConstructor;
+v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
 
 ///////////////////////////////////////////////////////////////////////////////
 class JsVlcPlayer::VideoFrame :

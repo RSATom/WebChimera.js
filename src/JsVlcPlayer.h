@@ -138,7 +138,7 @@ private:
     void video_display_cb( void* picture ) override;
 
 private:
-    static v8::UniquePersistent<v8::Function> _jsConstructor;
+    static v8::Persistent<v8::Function> _jsConstructor;
 
     libvlc_instance_t* _libvlc;
     vlc::player _player;

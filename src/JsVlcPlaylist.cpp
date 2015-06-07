@@ -1,6 +1,6 @@
 #include "JsVlcPlaylist.h"
 
-v8::UniquePersistent<v8::Function> JsVlcPlaylist::_jsConstructor;
+v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
 void JsVlcPlaylist::initJsApi()
 {

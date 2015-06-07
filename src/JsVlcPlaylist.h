@@ -11,5 +11,5 @@ public:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
 private:
-    static v8::UniquePersistent<v8::Function> _jsConstructor;
+    static v8::Persistent<v8::Function> _jsConstructor;
 };
