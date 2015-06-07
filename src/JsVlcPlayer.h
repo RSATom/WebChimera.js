@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <deque>
+#include <set>
 
 #include <v8.h>
 #include <node.h>
@@ -117,6 +118,9 @@ private:
     class RV32VideoFrame;
     class I420VideoFrame;
 
+    static void closeAll();
+    void close();
+
     void handleAsync();
     void setupBuffer( const RV32FrameSetupData& );
     void setupBuffer( const I420FrameSetupData& );
@@ -139,6 +143,7 @@ private:
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;
+    static std::set<JsVlcPlayer*> _instances;
 
     libvlc_instance_t* _libvlc;
     vlc::player _player;

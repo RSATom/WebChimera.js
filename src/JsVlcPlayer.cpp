@@ -3,6 +3,7 @@
 #include <string.h>
 
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
+std::set<JsVlcPlayer*> JsVlcPlayer::_instances;
 
 ///////////////////////////////////////////////////////////////////////////////
 class JsVlcPlayer::VideoFrame :
@@ -340,9 +341,18 @@ void* JsVlcPlayer::I420VideoFrame::video_lock_cb( void** planes )
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+void JsVlcPlayer::closeAll()
+{
+    for( JsVlcPlayer* p : _instances ) {
+        p->close();
+    }
+}
+
 JsVlcPlayer::JsVlcPlayer() :
     _libvlc( nullptr ), _pixelFormat( PixelFormat::I420 )
 {
+    _instances.insert( this );
+
     _libvlc = libvlc_new( 0, nullptr );
     assert( _libvlc );
     if( _player.open( _libvlc ) ) {
@@ -365,15 +375,27 @@ JsVlcPlayer::JsVlcPlayer() :
 
 JsVlcPlayer::~JsVlcPlayer()
 {
+    close();
+
+    _instances.erase( this );
+}
+
+void JsVlcPlayer::close()
+{
     _player.stop();
 
     _player.unregister_callback( this );
     vlc::basic_vmem_wrapper::close();
 
+    _player.close();
+
     _async.data = nullptr;
     uv_close( reinterpret_cast<uv_handle_t*>( &_async ), 0 );
 
-    libvlc_release( _libvlc );
+    if( _libvlc ) {
+        libvlc_release( _libvlc );
+        _libvlc = nullptr;
+    }
 }
 
 unsigned JsVlcPlayer::video_format_cb( char* chroma,
@@ -587,6 +609,8 @@ void JsVlcPlayer::callCallback( Callbacks_e callback,
 
 void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
 {
+    node::AtExit( [] ( void* ) { JsVlcPlayer::closeAll(); } );
+
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
