@@ -1,8 +1,10 @@
 #include "JsVlcPlaylist.h"
 
+#include "JsVlcPlayer.h"
+
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
-v8::UniquePersistent<v8::Object> JsVlcPlaylist::create()
+v8::UniquePersistent<v8::Object> JsVlcPlaylist::create( JsVlcPlayer& player )
 {
     using namespace v8;
 
@@ -11,7 +13,12 @@ v8::UniquePersistent<v8::Object> JsVlcPlaylist::create()
 
     Local<Function> constructor =
         Local<Function>::New( isolate, _jsConstructor );
-    return { isolate, constructor->NewInstance( 0, nullptr ) };
+
+    Local<Value> argv[] = { player.handle() };
+
+    return
+        { isolate,
+          constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv  ) };
 }
 
 void JsVlcPlaylist::initJsApi()
@@ -45,6 +52,8 @@ void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     } else {
         Local<Function> constructor =
             Local<Function>::New( isolate, _jsConstructor );
-        args.GetReturnValue().Set( constructor->NewInstance( 0, nullptr ) );
+        Local<Value> argv[] = { args[0] };
+        args.GetReturnValue().Set(
+            constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) );
     }
 }

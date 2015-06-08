@@ -364,7 +364,7 @@ JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Array>& vlcOpts ) :
         assert( false );
     }
 
-    _jsPlaylist = JsVlcPlaylist::create();
+    _jsPlaylist = JsVlcPlaylist::create( *this );
 
     uv_loop_t* loop = uv_default_loop();
 
