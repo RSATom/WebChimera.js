@@ -4,6 +4,10 @@ libvlc binding for node.js/io.js/NW.js/Electron
 
 [![Join the chat at https://gitter.im/RSATom/WebChimera](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RSATom/WebChimera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+## Demos
+* https://github.com/jaruba/wcjs-player
+* https://github.com/RSATom/wcjs-ugly-demo
+
 ## Build Prerequisites
 ### Windows
 * [Visual Studio Community 2013](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
