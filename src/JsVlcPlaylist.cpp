@@ -14,11 +14,7 @@ v8::UniquePersistent<v8::Object> JsVlcPlaylist::create( JsVlcPlayer& player )
     Local<Function> constructor =
         Local<Function>::New( isolate, _jsConstructor );
 
-    Local<Value> argv[] = { player.handle() };
-
-    return
-        { isolate,
-          constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv  ) };
+    return { isolate, constructor->NewInstance( 0, nullptr ) };
 }
 
 void JsVlcPlaylist::initJsApi()
