@@ -15,8 +15,10 @@ public:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
 private:
-    JsVlcPlaylist( v8::Local<v8::Object>& thisObject );
+    JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;
+
+    JsVlcPlayer* _jsPlayer;
 };

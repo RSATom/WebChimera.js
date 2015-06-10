@@ -4,7 +4,8 @@
 
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
-JsVlcPlaylist::JsVlcPlaylist( v8::Local<v8::Object>& thisObject )
+JsVlcPlaylist::JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
+    _jsPlayer( jsPlayer )
 {
     Wrap( thisObject );
 }
@@ -19,7 +20,9 @@ v8::UniquePersistent<v8::Object> JsVlcPlaylist::create( JsVlcPlayer& player )
     Local<Function> constructor =
         Local<Function>::New( isolate, _jsConstructor );
 
-    return { isolate, constructor->NewInstance( 0, nullptr ) };
+    Local<Value> argv[] = { player.handle() };
+
+    return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
 }
 
 void JsVlcPlaylist::initJsApi()
@@ -47,8 +50,12 @@ void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 
     Local<Object> thisObject = args.Holder();
     if( args.IsConstructCall() && thisObject->InternalFieldCount() > 0 ) {
-        JsVlcPlaylist* jsPlaylist = new JsVlcPlaylist( thisObject );
-        args.GetReturnValue().Set( thisObject );
+        JsVlcPlayer* jsPlayer =
+            ObjectWrap::Unwrap<JsVlcPlayer>( Handle<Object>::Cast( args[0] ) );
+        if( jsPlayer ) {
+            JsVlcPlaylist* jsPlaylist = new JsVlcPlaylist( thisObject, jsPlayer );
+            args.GetReturnValue().Set( thisObject );
+        }
     } else {
         Local<Function> constructor =
             Local<Function>::New( isolate, _jsConstructor );
