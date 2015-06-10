@@ -106,6 +106,9 @@ public:
                                const v8::PropertyCallbackInfo<void>& info,
                                Callbacks_e callback );
 
+    vlc::player& player()
+        { return _player; }
+
 private:
     JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts );
     ~JsVlcPlayer();
