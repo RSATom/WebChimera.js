@@ -4,6 +4,11 @@
 
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
+JsVlcPlaylist::JsVlcPlaylist( v8::Local<v8::Object>& thisObject )
+{
+    Wrap( thisObject );
+}
+
 v8::UniquePersistent<v8::Object> JsVlcPlaylist::create( JsVlcPlayer& player )
 {
     using namespace v8;
@@ -42,8 +47,7 @@ void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 
     Local<Object> thisObject = args.Holder();
     if( args.IsConstructCall() && thisObject->InternalFieldCount() > 0 ) {
-        JsVlcPlaylist* jsPlaylist= new JsVlcPlaylist;
-        jsPlaylist->Wrap( thisObject );
+        JsVlcPlaylist* jsPlaylist = new JsVlcPlaylist( thisObject );
         args.GetReturnValue().Set( thisObject );
     } else {
         Local<Function> constructor =

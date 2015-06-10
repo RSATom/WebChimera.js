@@ -107,7 +107,7 @@ public:
                                Callbacks_e callback );
 
 private:
-    JsVlcPlayer( const v8::Local<v8::Array>& vlcOpts );
+    JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts );
     ~JsVlcPlayer();
 
     struct AsyncData;

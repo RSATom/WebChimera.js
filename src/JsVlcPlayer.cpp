@@ -350,9 +350,11 @@ void JsVlcPlayer::closeAll()
     }
 }
 
-JsVlcPlayer::JsVlcPlayer( const v8::Local<v8::Array>& vlcOpts ) :
+JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts ) :
     _libvlc( nullptr ), _pixelFormat( PixelFormat::I420 )
 {
+    Wrap( thisObject );
+
     _instances.insert( this );
 
     initLibvlc( vlcOpts );
@@ -748,9 +750,8 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
             options = Local<Array>::Cast( args[0] );
         }
 
-        JsVlcPlayer* jsPlayer = new JsVlcPlayer( options );
-        jsPlayer->Wrap( thisObject );
-        args.GetReturnValue().Set( thisObject );
+        JsVlcPlayer* jsPlayer = new JsVlcPlayer( thisObject, options );
+        args.GetReturnValue().Set( jsPlayer->handle() );
     } else {
         Local<Value> argv[] = { args[0] };
         Local<Function> constructor =
