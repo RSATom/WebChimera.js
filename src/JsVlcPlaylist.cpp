@@ -35,8 +35,18 @@ void JsVlcPlaylist::initJsApi()
     Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
     ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlaylist" ) );
 
-    Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
-    vlcPlayerTemplate->SetInternalFieldCount( 1 );
+    Local<ObjectTemplate> jsTemplate = ct->InstanceTemplate();
+    jsTemplate->SetInternalFieldCount( 1 );
+
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Normal" ),
+                     Integer::New( isolate, static_cast<int>( PlaybackMode::Normal ) ),
+                     ReadOnly );
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Loop" ),
+                     Integer::New( isolate, static_cast<int>( PlaybackMode::Loop ) ),
+                     ReadOnly );
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Single" ),
+                     Integer::New( isolate, static_cast<int>( PlaybackMode::Single ) ),
+                     ReadOnly );
 
     _jsConstructor.Reset( isolate, ct->GetFunction() );
 }
