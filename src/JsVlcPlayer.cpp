@@ -546,7 +546,7 @@ void JsVlcPlayer::setupBuffer( const RV32FrameSetupData& frameData )
     videoFrame->setFrameBuffer(
         static_cast<char*>( jsArray->GetIndexedPropertiesExternalArrayData() ) );
 
-    callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat } );
+    callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat, jsArray } );
 }
 
 void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
@@ -592,7 +592,7 @@ void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
     videoFrame->setFrameBuffer(
         static_cast<char*>( jsArray->GetIndexedPropertiesExternalArrayData() ) );
 
-    callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat } );
+    callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat, jsArray } );
 }
 
 void JsVlcPlayer::frameUpdated()
