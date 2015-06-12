@@ -537,9 +537,9 @@ void JsVlcPlayer::setupBuffer( const RV32FrameSetupData& frameData )
     Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
     Local<Integer> jsPixelFormat = Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) );
 
-    jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
-    jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
-    jsArray->Set( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "width" ), jsWidth, ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "height" ), jsHeight, ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat, ReadOnly );
 
     _jsFrameBuffer.Reset( isolate, jsArray );
 
@@ -579,13 +579,13 @@ void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
     Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
     Local<Integer> jsPixelFormat = Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) );
 
-    jsArray->Set( String::NewFromUtf8( isolate, "width" ), jsWidth );
-    jsArray->Set( String::NewFromUtf8( isolate, "height" ), jsHeight );
-    jsArray->Set( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat );
-    jsArray->Set( String::NewFromUtf8( isolate, "uOffset" ),
-                  Integer::New( isolate, frameData.uPlaneOffset ) );
-    jsArray->Set( String::NewFromUtf8( isolate, "vOffset" ),
-                  Integer::New( isolate, frameData.vPlaneOffset ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "width" ), jsWidth, ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "height" ), jsHeight, ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat, ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "uOffset" ),
+                       Integer::New( isolate, frameData.uPlaneOffset ), ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "vOffset" ),
+                       Integer::New( isolate, frameData.vPlaneOffset ), ReadOnly );
 
     _jsFrameBuffer.Reset( isolate, jsArray );
 
