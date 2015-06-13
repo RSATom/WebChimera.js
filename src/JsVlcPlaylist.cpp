@@ -1,5 +1,6 @@
 #include "JsVlcPlaylist.h"
 
+#include "NodeTools.h"
 #include "JsVlcPlayer.h"
 
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
@@ -47,6 +48,19 @@ void JsVlcPlaylist::initJsApi()
     jsTemplate->Set( String::NewFromUtf8( isolate, "Single" ),
                      Integer::New( isolate, static_cast<int>( PlaybackMode::Single ) ),
                      ReadOnly );
+
+    SET_METHOD( ct, "add", &JsVlcPlaylist::add );
+    SET_METHOD( ct, "addWithOptions", &JsVlcPlaylist::addWithOptions );
+    SET_METHOD( ct, "play", &JsVlcPlaylist::play );
+    SET_METHOD( ct, "playItem", &JsVlcPlaylist::playItem );
+    SET_METHOD( ct, "pause", &JsVlcPlaylist::pause );
+    SET_METHOD( ct, "togglePause", &JsVlcPlaylist::togglePause );
+    SET_METHOD( ct, "stop",  &JsVlcPlaylist::stop );
+    SET_METHOD( ct, "next",  &JsVlcPlaylist::next );
+    SET_METHOD( ct, "prev",  &JsVlcPlaylist::prev );
+    SET_METHOD( ct, "clear",  &JsVlcPlaylist::clear );
+    SET_METHOD( ct, "removeItem",  &JsVlcPlaylist::removeItem );
+    SET_METHOD( ct, "advanceItem",  &JsVlcPlaylist::advanceItem );
 
     _jsConstructor.Reset( isolate, ct->GetFunction() );
 }
@@ -117,4 +131,74 @@ void JsVlcPlaylist::jsSetMode( v8::Local<v8::String> property,
                 break;
         }
     }
+}
+
+int JsVlcPlaylist::add( const std::string& mrl )
+{
+    return _jsPlayer->player().add_media( mrl.c_str() );
+}
+
+int JsVlcPlaylist::addWithOptions( const std::string& mrl,
+                                   const std::vector<std::string>& options )
+{
+    std::vector<const char*> trusted_opts;
+    trusted_opts.reserve( options.size() );
+
+    for( const std::string& opt: options ) {
+        trusted_opts.push_back( opt.c_str() );
+    }
+
+    return _jsPlayer->player().add_media( mrl.c_str(),
+                                          0, nullptr,
+                                          trusted_opts.size(), trusted_opts.data() );
+}
+
+void JsVlcPlaylist::play()
+{
+    _jsPlayer->player().play();
+}
+
+bool JsVlcPlaylist::playItem( unsigned idx )
+{
+    return _jsPlayer->player().play( idx );
+}
+
+void JsVlcPlaylist::pause()
+{
+    _jsPlayer->player().pause();
+}
+
+void JsVlcPlaylist::togglePause()
+{
+    _jsPlayer->player().togglePause();
+}
+
+void JsVlcPlaylist::stop()
+{
+    _jsPlayer->player().stop();
+}
+
+void JsVlcPlaylist::next()
+{
+    _jsPlayer->player().next();
+}
+
+void JsVlcPlaylist::prev()
+{
+    _jsPlayer->player().prev();
+}
+
+void JsVlcPlaylist::clear()
+{
+    _jsPlayer->player().clear_items();
+}
+
+bool JsVlcPlaylist::removeItem( unsigned idx )
+{
+    return _jsPlayer->player().delete_item( idx );
+}
+
+void JsVlcPlaylist::advanceItem( unsigned idx, int count )
+{
+    _jsPlayer->player().advance_item( idx, count );
 }

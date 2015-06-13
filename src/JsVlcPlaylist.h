@@ -28,6 +28,18 @@ public:
                            v8::Local<v8::Value> value,
                            const v8::PropertyCallbackInfo<void>& info );
 
+    int add( const std::string& mrl );
+    int addWithOptions( const std::string& mrl, const std::vector<std::string>& options );
+    void play();
+    bool playItem( unsigned idx );
+    void pause();
+    void togglePause();
+    void stop();
+    void next();
+    void prev();
+    void clear();
+    bool removeItem( unsigned idx );
+    void advanceItem( unsigned idx, int count );
 
 private:
     JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
