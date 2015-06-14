@@ -9,6 +9,12 @@ T FromJsValue( v8::Local<v8::Value>& value )
 }
 
 template<>
+inline v8::Local<v8::Value> FromJsValue<v8::Local<v8::Value> >( v8::Local<v8::Value>& value )
+{
+    return value;
+}
+
+template<>
 inline std::string FromJsValue<std::string>( v8::Local<v8::Value>& value )
 {
     v8::String::Utf8Value str( value->ToString() );
