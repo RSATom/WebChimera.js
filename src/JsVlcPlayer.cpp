@@ -841,7 +841,7 @@ void JsVlcPlayer::jsState( v8::Local<v8::String> property,
 }
 
 void JsVlcPlayer::jsPlaylist( v8::Local<v8::String> property,
-                           const v8::PropertyCallbackInfo<v8::Value>& info )
+                              const v8::PropertyCallbackInfo<v8::Value>& info )
 {
     using namespace v8;
 
