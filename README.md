@@ -38,11 +38,3 @@ Run npm install script
 ```bash
 $ npm install
 ```
-
-Test demo in nw.js
-```bash
-$ cd demos/ugly
-$ npm install
-$ sudo npm install nw -g
-$ nw
-```
