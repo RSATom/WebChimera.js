@@ -49,6 +49,12 @@ void JsVlcPlaylist::initJsApi()
                      Integer::New( isolate, static_cast<int>( PlaybackMode::Single ) ),
                      ReadOnly );
 
+    SET_RO_PROPERTY( jsTemplate, "itemCount", &JsVlcPlaylist::itemCount );
+    SET_RO_PROPERTY( jsTemplate, "isPlaying", &JsVlcPlaylist::isPlaying );
+
+    SET_RW_PROPERTY( jsTemplate, "currentItem", &JsVlcPlaylist::currentItem, &JsVlcPlaylist::setCurrentItem );
+    SET_RW_PROPERTY( jsTemplate, "mode", &JsVlcPlaylist::mode, &JsVlcPlaylist::setMode );
+
     SET_METHOD( ct, "add", &JsVlcPlaylist::add );
     SET_METHOD( ct, "addWithOptions", &JsVlcPlaylist::addWithOptions );
     SET_METHOD( ct, "play", &JsVlcPlaylist::play );
@@ -89,48 +95,46 @@ void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     }
 }
 
-void JsVlcPlaylist::jsMode( v8::Local<v8::String> property,
-                            const v8::PropertyCallbackInfo<v8::Value>& info )
+unsigned JsVlcPlaylist::itemCount()
 {
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlaylist* playlist = ObjectWrap::Unwrap<JsVlcPlaylist>( info.Holder() );
-
-    info.GetReturnValue().Set(
-        Integer::New( isolate,
-                      static_cast<int>( playlist->_jsPlayer->player().get_playback_mode() ) ) );
+    return _jsPlayer->player().item_count();
 }
 
-void JsVlcPlaylist::jsSetMode( v8::Local<v8::String> property,
-                               v8::Local<v8::Value> value,
-                               const v8::PropertyCallbackInfo<void>& info )
+bool JsVlcPlaylist::isPlaying()
 {
-    using namespace v8;
+    return _jsPlayer->player().is_playing();
+}
 
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
+unsigned JsVlcPlaylist::mode()
+{
+    return static_cast<unsigned>( _jsPlayer->player().get_playback_mode() );
+}
 
-    JsVlcPlaylist* jsPlaylist = ObjectWrap::Unwrap<JsVlcPlaylist>( info.Holder() );
+void JsVlcPlaylist::setMode( unsigned  mode )
+{
+    vlc::player& p = _jsPlayer->player();
 
-    vlc::player& player = jsPlaylist->_jsPlayer->player();
-
-    Local<Integer> jsMode = Local<Integer>::Cast( value );
-    if( !jsMode.IsEmpty() ) {
-        switch( jsMode->Value() ) {
-            case static_cast<decltype( jsMode->Value() )>( PlaybackMode::Normal ):
-                player.set_playback_mode( vlc::mode_normal );
-                break;
-            case static_cast<decltype( jsMode->Value() )>( PlaybackMode::Loop ):
-                player.set_playback_mode( vlc::mode_loop );
-                break;
-            case static_cast<decltype( jsMode->Value() )>( PlaybackMode::Single ):
-                player.set_playback_mode( vlc::mode_single );
-                break;
-        }
+    switch( mode ) {
+        case static_cast<unsigned>( PlaybackMode::Normal ):
+           p.set_playback_mode( vlc::mode_normal );
+            break;
+        case static_cast<unsigned>( PlaybackMode::Loop ):
+            p.set_playback_mode( vlc::mode_loop );
+            break;
+        case static_cast<unsigned>( PlaybackMode::Single ):
+            p.set_playback_mode( vlc::mode_single );
+            break;
     }
+}
+
+int JsVlcPlaylist::currentItem()
+{
+    return _jsPlayer->player().current_item();
+}
+
+void JsVlcPlaylist::setCurrentItem( unsigned idx )
+{
+    _jsPlayer->player().set_current( idx );
 }
 
 int JsVlcPlaylist::add( const std::string& mrl )

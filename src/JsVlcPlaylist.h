@@ -22,11 +22,14 @@ public:
     static void initJsApi();
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
-    static void jsMode( v8::Local<v8::String> property,
-                        const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsSetMode( v8::Local<v8::String> property,
-                           v8::Local<v8::Value> value,
-                           const v8::PropertyCallbackInfo<void>& info );
+    unsigned itemCount();
+    bool isPlaying();
+
+    int currentItem();
+    void setCurrentItem( unsigned );
+
+    unsigned mode();
+    void setMode( unsigned );
 
     int add( const std::string& mrl );
     int addWithOptions( const std::string& mrl, const std::vector<std::string>& options );
