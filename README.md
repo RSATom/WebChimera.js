@@ -8,6 +8,9 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * https://github.com/jaruba/wcjs-player
 * https://github.com/RSATom/wcjs-ugly-demo
 
+## API
+* https://github.com/RSATom/WebChimera.js/wiki/JS-API
+
 ## Build Prerequisites
 ### Windows
 * [Visual Studio Community 2013](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
