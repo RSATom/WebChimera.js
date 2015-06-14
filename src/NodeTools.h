@@ -60,7 +60,12 @@ inline v8::Local<v8::Value> ToJsValue( v8::Local<v8::Value>& value )
 
 inline v8::Local<v8::Value> ToJsValue( int value )
 {
-    return v8::Number::New( v8::Isolate::GetCurrent(), value );
+    return v8::Integer::New( v8::Isolate::GetCurrent(), value );
+}
+
+inline v8::Local<v8::Value> ToJsValue( unsigned value )
+{
+    return v8::Integer::New( v8::Isolate::GetCurrent(), value );
 }
 
 template<typename C, typename ... A, unsigned ... I >
@@ -96,9 +101,62 @@ void CallMethod( R ( C::* method ) ( A ... ), const v8::FunctionCallbackInfo<v8:
     return CallMethod( method, info, MakeStaticSequence<sizeof ... ( A )>::Sequence() );
 }
 
-#define SET_METHOD( objTemplate, name, member )                  \
-    NODE_SET_PROTOTYPE_METHOD( objTemplate, name,                \
+template<typename R, typename C>
+void GetPropertyValue( R ( C::* getter ) (), const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    C* instance = node::ObjectWrap::Unwrap<C>( info.Holder() );
+
+    info.GetReturnValue().Set( ToJsValue( ( instance->*getter ) () ) );
+}
+
+template<typename C, typename V>
+void SetPropertyValue( void ( C::* setter ) (V),
+                       v8::Local<v8::Value> value,
+                       const v8::PropertyCallbackInfo<void>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    C* instance = node::ObjectWrap::Unwrap<C>( info.Holder() );
+
+    typedef std::remove_const<std::remove_reference<V>::type>::type cleanPropType;
+    ( instance->*setter ) ( FromJsValue<cleanPropType>( value ) );
+}
+
+#define SET_METHOD( funTemplate, name, member )                  \
+    NODE_SET_PROTOTYPE_METHOD( funTemplate, name,                \
         [] ( const v8::FunctionCallbackInfo<v8::Value>& info ) { \
             CallMethod( member, info );                          \
         }                                                        \
+    )
+
+#define SET_RO_PROPERTY( objTemplate, name, member )                              \
+    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name ), \
+        [] ( v8::Local<v8::String> property,                                      \
+             const v8::PropertyCallbackInfo<v8::Value>& info )                    \
+        {                                                                         \
+            GetPropertyValue( member, info );                                     \
+        }                                                                         \
+    )
+
+#define SET_RW_PROPERTY( objTemplate, name, getter, setter )                      \
+    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name ), \
+        [] ( v8::Local<v8::String> /*property*/,                                  \
+             const v8::PropertyCallbackInfo<v8::Value>& info )                    \
+        {                                                                         \
+            GetPropertyValue( getter, info );                                     \
+        },                                                                        \
+        [] ( v8::Local<v8::String> /*property*/,                                  \
+             v8::Local<v8::Value> value,                                          \
+             const v8::PropertyCallbackInfo<void>& info )                         \
+        {                                                                         \
+            SetPropertyValue( setter, value, info );                              \
+        }                                                                         \
     )
