@@ -5,11 +5,11 @@ libvlc binding for node.js/io.js/NW.js/Electron
 [![Join the chat at https://gitter.im/RSATom/WebChimera](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RSATom/WebChimera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Demos
-* https://github.com/jaruba/wcjs-player
-* https://github.com/RSATom/wcjs-ugly-demo
+* [wcjs player](https://github.com/jaruba/wcjs-player)
+* [ugly demo](https://github.com/RSATom/wcjs-ugly-demo)
 
-## API
-* https://github.com/RSATom/WebChimera.js/wiki/JS-API
+## Docs
+* [JavaScript API](https://github.com/RSATom/WebChimera.js/wiki/JavaScript-API)
 
 ## Build Prerequisites
 ### Windows
