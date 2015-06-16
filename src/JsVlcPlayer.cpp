@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include "NodeTools.h"
 #include "JsVlcPlaylist.h"
 
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
@@ -729,6 +730,8 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     NODE_SET_PROTOTYPE_METHOD( ct, "stop", jsStop );
     NODE_SET_PROTOTYPE_METHOD( ct, "toggleMute", jsToggleMute );
 
+    SET_RO_PROPERTY( vlcPlayerTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
+
     _jsConstructor.Reset( isolate, ct->GetFunction() );
     exports->Set( String::NewFromUtf8( isolate, "VlcPlayer" ), ct->GetFunction() );
     exports->Set( String::NewFromUtf8( isolate, "createPlayer" ), ct->GetFunction() );
@@ -1077,4 +1080,9 @@ void JsVlcPlayer::setJsCallback( v8::Local<v8::String> property,
     Local<Function> callbackFunc = Local<Function>::Cast( value );
     if( !callbackFunc.IsEmpty() )
         jsPlayer->_jsCallbacks[callback].Reset( isolate, callbackFunc );
+}
+
+v8::Local<v8::Value> JsVlcPlayer::getVideoFrame()
+{
+    return v8::Local<v8::Value>::New( v8::Isolate::GetCurrent(), _jsFrameBuffer );
 }
