@@ -23,6 +23,6 @@
     "runtimeVersion": "0.12.0"
   },
   "scripts": {
-    "install": "cmake-js rebuild"
+    "install": "node rebuild.js"
   }
 }
