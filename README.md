@@ -11,6 +11,9 @@ libvlc binding for node.js/io.js/NW.js/Electron
 ## Docs
 * [JavaScript API](https://github.com/RSATom/WebChimera.js/wiki/JavaScript-API)
 
+## Known Projects using `WebChimera.js`
+* [Stremio](http://blog.strem.io/post/121596387436/alpha-of-stremio-2-0)
+
 ## Build Prerequisites
 ### Windows
 * [Visual Studio Community 2013](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
