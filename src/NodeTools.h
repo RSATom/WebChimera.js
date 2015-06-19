@@ -4,6 +4,8 @@
 #include <vector>
 
 #include <v8.h>
+#include <node.h>
+#include <node_object_wrap.h>
 
 #include "Tools.h"
 
@@ -42,7 +44,7 @@ inline int FromJsValue<int>( const v8::Local<v8::Value>& value )
 template<>
 std::vector<std::string> FromJsValue<std::vector<std::string> >( const v8::Local<v8::Value>& value );
 
-inline v8::Local<v8::Value> ToJsValue( v8::Local<v8::Value>& value )
+inline v8::Local<v8::Value> ToJsValue( const v8::Local<v8::Value>& value )
 {
     return value;
 }
