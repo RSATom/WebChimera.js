@@ -33,7 +33,7 @@ $ sudo apt-get install build-essential cmake libvlc-dev
 * `npm install -g cmake-js`
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `build_nw.cmd` or `build_electron.cmd`
+* `build_nwjs.cmd` or `build_electron.cmd`
 
 ### Linux
 Clone repository
