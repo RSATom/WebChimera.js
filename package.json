@@ -20,7 +20,7 @@
   },
   "cmake-js": {
     "runtime": "nw",
-    "runtimeVersion": "0.12.0"
+    "runtimeVersion": "0.12.2"
   },
   "scripts": {
     "install": "node rebuild.js"
