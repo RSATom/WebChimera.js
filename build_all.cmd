@@ -1,9 +1,10 @@
 rd /S /Q build
-rd /S /Q build_nw
-rd /S /Q build_electron
+rd /S /Q Release
 
-call build_nw.cmd
-rename build build_nw
+call build_nwjs.cmd
+"%ProgramFiles%\7-Zip\7z" a ./Release/WebChimera.js_nwjs_win.zip ./build/Release/WebChimera.js.node
+rd /S /Q build
 
 call build_electron.cmd
-rename build build_electron
+"%ProgramFiles%\7-Zip\7z" a ./Release/WebChimera.js_electron_win.zip ./build/Release/WebChimera.js.node
+rd /S /Q build

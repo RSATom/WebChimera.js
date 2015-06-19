@@ -1,1 +1,5 @@
-call cmake-js rebuild --runtime=electron --arch=ia32 --runtime-version=0.27.2
+set npm_config_wcjs_runtime="electron"
+set npm_config_wcjs_runtime_version="0.27.2"
+set npm_config_wcjs_arch="ia32"
+
+npm install
