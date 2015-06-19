@@ -1,6 +1,3 @@
 [submodule "deps/libvlc_wrapper"]
 	path = deps/libvlc_wrapper
 	url = https://github.com/RSATom/ya-libvlc-wrapper.git
-[submodule "deps/libvlc-sdk"]
-	path = deps/libvlc-sdk
-	url = https://github.com/RSATom/libvlc-sdk.git

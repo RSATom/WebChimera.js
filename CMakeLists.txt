@@ -21,20 +21,12 @@ file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     package.json
     )
 
-include_directories( ${CMAKE_JS_INC} deps deps/libvlc-sdk/include )
+include_directories( ${CMAKE_JS_INC} deps )
 add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper )
 
 add_library( ${PROJECT_NAME} SHARED ${SOURCE_FILES} )
 set_target_properties( ${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node" )
 target_link_libraries( ${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper )
-
-if( MSVC )
-    target_link_libraries( ${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc-sdk/lib/msvc/libvlc.lib )
-elseif( APPLE )
-    target_link_libraries( ${PROJECT_NAME} /Applications/VLC.app/Contents/MacOS/lib/libvlc.dylib )
-else()
-    target_link_libraries( ${PROJECT_NAME} vlc )
-endif()
 
 #get_cmake_property( _variableNames VARIABLES )
 #foreach( _variableName ${_variableNames} )
