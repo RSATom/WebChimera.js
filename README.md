@@ -22,6 +22,12 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [CMake](http://www.cmake.org/);
 * [io.js](https://iojs.org) or [Node.js](https://nodejs.org);
 
+### Mac OS X
+* [Apple XCode](https://developer.apple.com/xcode/);
+* [VLC Player](http://www.videolan.org/vlc/download-macosx.html);
+* [CMake](http://www.cmake.org/);
+* [io.js](https://iojs.org) or [Node.js](https://nodejs.org);
+
 ### Linux
 for apt based distros:
 * `$ sudo apt-get install build-essential cmake libvlc-dev`
@@ -32,7 +38,7 @@ for apt based distros:
 * `cd WebChimera.js`
 * `build_nwjs.cmd` or `build_electron.cmd`
 
-### Linux
+### Mac OS X & Linux
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
 * `./build_nwjs.sh` or `./build_electron.sh`
