@@ -18,3 +18,31 @@ std::vector<std::string> FromJsValue<std::vector<std::string> >( const v8::Local
 
     return std::move( result );
 }
+
+v8::Local<v8::Function> RequireFunc()
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    Local<Object> global = isolate->GetCurrentContext()->Global();
+
+    return
+        Local<Function>::Cast(
+            global->Get(
+                String::NewFromUtf8( isolate,
+                                     "require",
+                                     String::kInternalizedString ) ) );
+}
+
+v8::Local<v8::Object> Require( const char* module )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    Local<Object> global = isolate->GetCurrentContext()->Global();
+
+    Local<Value> argv[] =
+        { String::NewFromUtf8( isolate, module, String::kInternalizedString ) };
+
+    return Local<Object>::Cast(  RequireFunc()->Call( global, 1, argv ) );
+}

@@ -186,3 +186,5 @@ void SetPropertyValue( void ( C::* setter ) (V),
             SetPropertyValue( setter, value, info );                                         \
         }                                                                                    \
     )
+
+v8::Local<v8::Object> Require( const char* module );
