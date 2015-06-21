@@ -157,26 +157,26 @@ void SetPropertyValue( void ( C::* setter ) (V),
         }                                                        \
     )
 
-#define SET_RO_PROPERTY( objTemplate, name, member )                              \
-    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name ), \
-        [] ( v8::Local<v8::String> property,                                      \
-             const v8::PropertyCallbackInfo<v8::Value>& info )                    \
-        {                                                                         \
-            GetPropertyValue( member, info );                                     \
-        }                                                                         \
+#define SET_RO_PROPERTY( objTemplate, name, member )                                                               \
+    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name, v8::String::kInternalizedString ), \
+        [] ( v8::Local<v8::String> property,                                                                       \
+             const v8::PropertyCallbackInfo<v8::Value>& info )                                                     \
+        {                                                                                                          \
+            GetPropertyValue( member, info );                                                                      \
+        }                                                                                                          \
     )
 
-#define SET_RW_PROPERTY( objTemplate, name, getter, setter )                      \
-    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name ), \
-        [] ( v8::Local<v8::String> /*property*/,                                  \
-             const v8::PropertyCallbackInfo<v8::Value>& info )                    \
-        {                                                                         \
-            GetPropertyValue( getter, info );                                     \
-        },                                                                        \
-        [] ( v8::Local<v8::String> /*property*/,                                  \
-             v8::Local<v8::Value> value,                                          \
-             const v8::PropertyCallbackInfo<void>& info )                         \
-        {                                                                         \
-            SetPropertyValue( setter, value, info );                              \
-        }                                                                         \
+#define SET_RW_PROPERTY( objTemplate, name, getter, setter )                                                       \
+    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name, v8::String::kInternalizedString ), \
+        [] ( v8::Local<v8::String> /*property*/,                                                                   \
+             const v8::PropertyCallbackInfo<v8::Value>& info )                                                     \
+        {                                                                                                          \
+            GetPropertyValue( getter, info );                                                                      \
+        },                                                                                                         \
+        [] ( v8::Local<v8::String> /*property*/,                                                                   \
+             v8::Local<v8::Value> value,                                                                           \
+             const v8::PropertyCallbackInfo<void>& info )                                                          \
+        {                                                                                                          \
+            SetPropertyValue( setter, value, info );                                                               \
+        }                                                                                                          \
     )

@@ -538,9 +538,12 @@ void JsVlcPlayer::setupBuffer( const RV32FrameSetupData& frameData )
     Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
     Local<Integer> jsPixelFormat = Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) );
 
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "width" ), jsWidth, ReadOnly );
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "height" ), jsHeight, ReadOnly );
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat, ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "width", v8::String::kInternalizedString ), jsWidth,
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "height", v8::String::kInternalizedString ), jsHeight,
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "pixelFormat", v8::String::kInternalizedString ), jsPixelFormat,
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
     _jsFrameBuffer.Reset( isolate, jsArray );
 
@@ -580,13 +583,21 @@ void JsVlcPlayer::setupBuffer( const I420FrameSetupData& frameData )
     Local<Integer> jsHeight = Integer::New( isolate, frameData.height );
     Local<Integer> jsPixelFormat = Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) );
 
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "width" ), jsWidth, ReadOnly );
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "height" ), jsHeight, ReadOnly );
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "pixelFormat" ), jsPixelFormat, ReadOnly );
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "uOffset" ),
-                       Integer::New( isolate, frameData.uPlaneOffset ), ReadOnly );
-    jsArray->ForceSet( String::NewFromUtf8( isolate, "vOffset" ),
-                       Integer::New( isolate, frameData.vPlaneOffset ), ReadOnly );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "width", v8::String::kInternalizedString ),
+                       jsWidth,
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "height", v8::String::kInternalizedString ),
+                       jsHeight,
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "pixelFormat", v8::String::kInternalizedString ),
+                       jsPixelFormat,
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "uOffset", v8::String::kInternalizedString ),
+                       Integer::New( isolate, frameData.uPlaneOffset ),
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    jsArray->ForceSet( String::NewFromUtf8( isolate, "vOffset", v8::String::kInternalizedString ),
+                       Integer::New( isolate, frameData.vPlaneOffset ),
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
     _jsFrameBuffer.Reset( isolate, jsArray );
 
@@ -606,18 +617,18 @@ void JsVlcPlayer::frameUpdated()
     callCallback( CB_FrameReady, { Local<Value>::New( Isolate::GetCurrent(), _jsFrameBuffer ) } );
 }
 
-#define SET_CALLBACK_PROPERTY( objTemplate, name, callback )                      \
-    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name ), \
-        [] ( v8::Local<v8::String> property,                                      \
-             const v8::PropertyCallbackInfo<v8::Value>& info )                    \
-        {                                                                         \
-            JsVlcPlayer::getJsCallback( property, info, callback );               \
-        },                                                                        \
-        [] ( v8::Local<v8::String> property,                                      \
-             v8::Local<v8::Value> value,                                          \
-             const v8::PropertyCallbackInfo<void>& info )                         \
-        {                                                                         \
-            JsVlcPlayer::setJsCallback( property, value, info, callback );        \
+#define SET_CALLBACK_PROPERTY( objTemplate, name, callback )                                                       \
+    objTemplate->SetAccessor( String::NewFromUtf8( Isolate::GetCurrent(), name, v8::String::kInternalizedString ), \
+        [] ( v8::Local<v8::String> property,                                                                       \
+             const v8::PropertyCallbackInfo<v8::Value>& info )                                                     \
+        {                                                                                                          \
+            JsVlcPlayer::getJsCallback( property, info, callback );                                                \
+        },                                                                                                         \
+        [] ( v8::Local<v8::String> property,                                                                       \
+             v8::Local<v8::Value> value,                                                                           \
+             const v8::PropertyCallbackInfo<void>& info )                                                          \
+        {                                                                                                          \
+            JsVlcPlayer::setJsCallback( property, value, info, callback );                                         \
         } )
 
 void JsVlcPlayer::callCallback( Callbacks_e callback,
@@ -651,81 +662,90 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
-    ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlayer" ) );
+    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
+    constructorTemplate->SetClassName( String::NewFromUtf8( isolate, "VlcPlayer", v8::String::kInternalizedString ) );
 
-    Local<ObjectTemplate> jsTemplate = ct->InstanceTemplate();
-    jsTemplate->SetInternalFieldCount( 1 );
+    Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
+    Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
+    instanceTemplate->SetInternalFieldCount( 1 );
 
-    jsTemplate->Set( String::NewFromUtf8( isolate, "RV32" ),
-                            Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) ),
-                            ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "I420" ),
-                            Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) ),
-                            ReadOnly );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "RV32", v8::String::kInternalizedString ),
+                        Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "I420", v8::String::kInternalizedString ),
+                        Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
-    jsTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial" ),
-                            Integer::New( isolate, libvlc_NothingSpecial ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Opening" ),
-                            Integer::New( isolate, libvlc_Opening ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Buffering" ),
-                            Integer::New( isolate, libvlc_Buffering ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Playing" ),
-                            Integer::New( isolate, libvlc_Playing ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Paused" ),
-                            Integer::New( isolate, libvlc_Paused ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Stopped" ),
-                            Integer::New( isolate, libvlc_Stopped ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Ended" ),
-                            Integer::New( isolate, libvlc_Ended ), ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Error" ),
-                            Integer::New( isolate, libvlc_Error ), ReadOnly );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_NothingSpecial ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Opening", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Opening ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Buffering", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Buffering ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Playing", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Playing ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Paused", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Paused ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Stopped", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Stopped ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Ended", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Ended ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Error", v8::String::kInternalizedString ),
+                        Integer::New( isolate, libvlc_Error ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
-    SET_CALLBACK_PROPERTY( jsTemplate, "onFrameSetup", CB_FrameSetup );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onFrameReady", CB_FrameReady );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onFrameCleanup", CB_FrameCleanup );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameSetup", CB_FrameSetup );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameReady", CB_FrameReady );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameCleanup", CB_FrameCleanup );
 
-    SET_CALLBACK_PROPERTY( jsTemplate, "onMediaChanged", CB_MediaPlayerMediaChanged );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onNothingSpecial", CB_MediaPlayerNothingSpecial );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onOpening", CB_MediaPlayerOpening );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onBuffering", CB_MediaPlayerBuffering );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onPlaying", CB_MediaPlayerPlaying );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onPaused", CB_MediaPlayerPaused );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onForward", CB_MediaPlayerForward );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onBackward", CB_MediaPlayerBackward );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onEncounteredError", CB_MediaPlayerEncounteredError );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onEndReached", CB_MediaPlayerEndReached );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onStopped", CB_MediaPlayerStopped );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onMediaChanged", CB_MediaPlayerMediaChanged );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onNothingSpecial", CB_MediaPlayerNothingSpecial );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onOpening", CB_MediaPlayerOpening );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onBuffering", CB_MediaPlayerBuffering );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onPlaying", CB_MediaPlayerPlaying );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onPaused", CB_MediaPlayerPaused );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onForward", CB_MediaPlayerForward );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onBackward", CB_MediaPlayerBackward );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onEncounteredError", CB_MediaPlayerEncounteredError );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onEndReached", CB_MediaPlayerEndReached );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onStopped", CB_MediaPlayerStopped );
 
-    SET_CALLBACK_PROPERTY( jsTemplate, "onTimeChanged", CB_MediaPlayerTimeChanged );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onPositionChanged", CB_MediaPlayerPositionChanged );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onSeekableChanged", CB_MediaPlayerSeekableChanged );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onPausableChanged", CB_MediaPlayerPausableChanged );
-    SET_CALLBACK_PROPERTY( jsTemplate, "onLengthChanged", CB_MediaPlayerLengthChanged );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onTimeChanged", CB_MediaPlayerTimeChanged );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onPositionChanged", CB_MediaPlayerPositionChanged );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onSeekableChanged", CB_MediaPlayerSeekableChanged );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onPausableChanged", CB_MediaPlayerPausableChanged );
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onLengthChanged", CB_MediaPlayerLengthChanged );
 
-    NODE_SET_PROTOTYPE_METHOD( ct, "play", jsPlay );
+    SET_RO_PROPERTY( instanceTemplate, "playing", &JsVlcPlayer::playing );
+    SET_RO_PROPERTY( instanceTemplate, "length", &JsVlcPlayer::length );
+    SET_RO_PROPERTY( instanceTemplate, "state", &JsVlcPlayer::state );
+    SET_RO_PROPERTY( instanceTemplate, "playlist", &JsVlcPlayer::playlist );
 
-    SET_RO_PROPERTY( jsTemplate, "playing", &JsVlcPlayer::playing );
-    SET_RO_PROPERTY( jsTemplate, "length", &JsVlcPlayer::length );
-    SET_RO_PROPERTY( jsTemplate, "state", &JsVlcPlayer::state );
-    SET_RO_PROPERTY( jsTemplate, "playlist", &JsVlcPlayer::playlist );
+    SET_RO_PROPERTY( instanceTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
 
-    SET_RO_PROPERTY( jsTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
+    SET_RW_PROPERTY( instanceTemplate, "pixelFormat", &JsVlcPlayer::pixelFormat, &JsVlcPlayer::setPixelFormat );
+    SET_RW_PROPERTY( instanceTemplate, "position", &JsVlcPlayer::position, &JsVlcPlayer::setPosition );
+    SET_RW_PROPERTY( instanceTemplate, "time", &JsVlcPlayer::time, &JsVlcPlayer::setTime );
+    SET_RW_PROPERTY( instanceTemplate, "volume", &JsVlcPlayer::volume, &JsVlcPlayer::setVolume );
+    SET_RW_PROPERTY( instanceTemplate, "mute", &JsVlcPlayer::muted, &JsVlcPlayer::setMuted );
 
-    SET_RW_PROPERTY( jsTemplate, "pixelFormat", &JsVlcPlayer::pixelFormat, &JsVlcPlayer::setPixelFormat );
-    SET_RW_PROPERTY( jsTemplate, "position", &JsVlcPlayer::position, &JsVlcPlayer::setPosition );
-    SET_RW_PROPERTY( jsTemplate, "time", &JsVlcPlayer::time, &JsVlcPlayer::setTime );
-    SET_RW_PROPERTY( jsTemplate, "volume", &JsVlcPlayer::volume, &JsVlcPlayer::setVolume );
-    SET_RW_PROPERTY( jsTemplate, "mute", &JsVlcPlayer::muted, &JsVlcPlayer::setMuted );
+    NODE_SET_PROTOTYPE_METHOD( constructorTemplate, "play", jsPlay );
+    SET_METHOD( constructorTemplate, "pause", &JsVlcPlayer::pause );
+    SET_METHOD( constructorTemplate, "togglePause", &JsVlcPlayer::togglePause );
+    SET_METHOD( constructorTemplate, "stop",  &JsVlcPlayer::stop );
+    SET_METHOD( constructorTemplate, "toggleMute", &JsVlcPlayer::toggleMute );
 
-    SET_METHOD( ct, "pause", &JsVlcPlayer::pause );
-    SET_METHOD( ct, "togglePause", &JsVlcPlayer::togglePause );
-    SET_METHOD( ct, "stop",  &JsVlcPlayer::stop );
-    SET_METHOD( ct, "toggleMute", &JsVlcPlayer::toggleMute );
-
-    _jsConstructor.Reset( isolate, ct->GetFunction() );
-    exports->Set( String::NewFromUtf8( isolate, "VlcPlayer" ), ct->GetFunction() );
-    exports->Set( String::NewFromUtf8( isolate, "createPlayer" ), ct->GetFunction() );
+    Local<Function> constructor = constructorTemplate->GetFunction();
+    _jsConstructor.Reset( isolate, constructor );
+    exports->Set( String::NewFromUtf8( isolate, "VlcPlayer", v8::String::kInternalizedString ), constructor );
+    exports->Set( String::NewFromUtf8( isolate, "createPlayer", v8::String::kInternalizedString ), constructor );
 }
 
 void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
@@ -736,7 +756,7 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     HandleScope scope( isolate );
 
     Local<Object> thisObject = args.Holder();
-    if( args.IsConstructCall() && thisObject->InternalFieldCount() > 0 ) {
+    if( args.IsConstructCall() ) {
         Local<Array> options;
         if( args.Length() == 1 && args[0]->IsArray() ) {
             options = Local<Array>::Cast( args[0] );

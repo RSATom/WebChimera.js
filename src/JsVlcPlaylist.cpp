@@ -33,42 +33,45 @@ void JsVlcPlaylist::initJsApi()
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
-    ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlaylist" ) );
 
-    Local<ObjectTemplate> jsTemplate = ct->InstanceTemplate();
-    jsTemplate->SetInternalFieldCount( 1 );
+    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
+    constructorTemplate->SetClassName( String::NewFromUtf8( isolate, "VlcPlaylist", v8::String::kInternalizedString ) );
 
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Normal" ),
-                     Integer::New( isolate, static_cast<int>( PlaybackMode::Normal ) ),
-                     ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Loop" ),
-                     Integer::New( isolate, static_cast<int>( PlaybackMode::Loop ) ),
-                     ReadOnly );
-    jsTemplate->Set( String::NewFromUtf8( isolate, "Single" ),
-                     Integer::New( isolate, static_cast<int>( PlaybackMode::Single ) ),
-                     ReadOnly );
+    Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
+    Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
+    instanceTemplate->SetInternalFieldCount( 1 );
 
-    SET_RO_PROPERTY( jsTemplate, "itemCount", &JsVlcPlaylist::itemCount );
-    SET_RO_PROPERTY( jsTemplate, "isPlaying", &JsVlcPlaylist::isPlaying );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Normal", v8::String::kInternalizedString ),
+                        Integer::New( isolate, static_cast<int>( PlaybackMode::Normal ) ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Loop", v8::String::kInternalizedString ),
+                        Integer::New( isolate, static_cast<int>( PlaybackMode::Loop ) ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "Single", v8::String::kInternalizedString ),
+                        Integer::New( isolate, static_cast<int>( PlaybackMode::Single ) ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
-    SET_RW_PROPERTY( jsTemplate, "currentItem", &JsVlcPlaylist::currentItem, &JsVlcPlaylist::setCurrentItem );
-    SET_RW_PROPERTY( jsTemplate, "mode", &JsVlcPlaylist::mode, &JsVlcPlaylist::setMode );
+    SET_RO_PROPERTY( instanceTemplate, "itemCount", &JsVlcPlaylist::itemCount );
+    SET_RO_PROPERTY( instanceTemplate, "isPlaying", &JsVlcPlaylist::isPlaying );
 
-    SET_METHOD( ct, "add", &JsVlcPlaylist::add );
-    SET_METHOD( ct, "addWithOptions", &JsVlcPlaylist::addWithOptions );
-    SET_METHOD( ct, "play", &JsVlcPlaylist::play );
-    SET_METHOD( ct, "playItem", &JsVlcPlaylist::playItem );
-    SET_METHOD( ct, "pause", &JsVlcPlaylist::pause );
-    SET_METHOD( ct, "togglePause", &JsVlcPlaylist::togglePause );
-    SET_METHOD( ct, "stop",  &JsVlcPlaylist::stop );
-    SET_METHOD( ct, "next",  &JsVlcPlaylist::next );
-    SET_METHOD( ct, "prev",  &JsVlcPlaylist::prev );
-    SET_METHOD( ct, "clear",  &JsVlcPlaylist::clear );
-    SET_METHOD( ct, "removeItem",  &JsVlcPlaylist::removeItem );
-    SET_METHOD( ct, "advanceItem",  &JsVlcPlaylist::advanceItem );
+    SET_RW_PROPERTY( instanceTemplate, "currentItem", &JsVlcPlaylist::currentItem, &JsVlcPlaylist::setCurrentItem );
+    SET_RW_PROPERTY( instanceTemplate, "mode", &JsVlcPlaylist::mode, &JsVlcPlaylist::setMode );
 
-    _jsConstructor.Reset( isolate, ct->GetFunction() );
+    SET_METHOD( constructorTemplate, "add", &JsVlcPlaylist::add );
+    SET_METHOD( constructorTemplate, "addWithOptions", &JsVlcPlaylist::addWithOptions );
+    SET_METHOD( constructorTemplate, "play", &JsVlcPlaylist::play );
+    SET_METHOD( constructorTemplate, "playItem", &JsVlcPlaylist::playItem );
+    SET_METHOD( constructorTemplate, "pause", &JsVlcPlaylist::pause );
+    SET_METHOD( constructorTemplate, "togglePause", &JsVlcPlaylist::togglePause );
+    SET_METHOD( constructorTemplate, "stop",  &JsVlcPlaylist::stop );
+    SET_METHOD( constructorTemplate, "next",  &JsVlcPlaylist::next );
+    SET_METHOD( constructorTemplate, "prev",  &JsVlcPlaylist::prev );
+    SET_METHOD( constructorTemplate, "clear",  &JsVlcPlaylist::clear );
+    SET_METHOD( constructorTemplate, "removeItem",  &JsVlcPlaylist::removeItem );
+    SET_METHOD( constructorTemplate, "advanceItem",  &JsVlcPlaylist::advanceItem );
+
+    Local<Function> constructor = constructorTemplate->GetFunction();
+    _jsConstructor.Reset( isolate, constructor );
 }
 
 void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
