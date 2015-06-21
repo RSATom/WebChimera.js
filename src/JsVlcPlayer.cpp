@@ -5,6 +5,31 @@
 #include "NodeTools.h"
 #include "JsVlcPlaylist.h"
 
+const char* JsVlcPlayer::callbackNames[] =
+{
+    "FrameSetup",
+    "FrameReady",
+    "FrameCleanup",
+
+    "MediaChanged",
+    "NothingSpecial",
+    "Opening",
+    "Buffering",
+    "Playing",
+    "Paused",
+    "Stopped",
+    "Forward",
+    "Backward",
+    "EndReached",
+    "EncounteredError",
+
+    "TimeChanged",
+    "PositionChanged",
+    "SeekableChanged",
+    "PausableChanged",
+    "LengthChanged"
+};
+
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
 std::set<JsVlcPlayer*> JsVlcPlayer::_instances;
 
@@ -367,6 +392,14 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
         assert( false );
     }
 
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    _jsEventEmitter.Reset( isolate,
+        v8::Local<v8::Function>::Cast(
+            Require( "events" )->Get(
+                v8::String::NewFromUtf8( isolate,
+                                         "EventEmitter",
+                                         v8::String::kInternalizedString ) ) )->NewInstance() );
+
     _jsPlaylist = JsVlcPlaylist::create( *this );
 
     uv_loop_t* loop = uv_default_loop();
@@ -639,16 +672,30 @@ void JsVlcPlayer::callCallback( Callbacks_e callback,
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    if( _jsCallbacks[callback].IsEmpty() )
-        return;
+    std::vector<v8::Local<v8::Value> > argList;
+    argList.reserve( list.size() );
+    argList.push_back(
+        String::NewFromUtf8( isolate,
+                             callbackNames[callback],
+                             v8::String::kInternalizedString ) );
+    if( list.size() > 0 )
+        argList.insert( argList.end(), list );
 
-    std::vector<v8::Local<v8::Value> > argList = list;
+    if( !_jsCallbacks[callback].IsEmpty() ) {
+        Local<Function> callbackFunc =
+            Local<Function>::New( isolate, _jsCallbacks[callback] );
 
-    Local<Function> callbackFunc =
-        Local<Function>::New( isolate, _jsCallbacks[callback] );
+        callbackFunc->Call( isolate->GetCurrentContext()->Global(),
+                            argList.size() - 1, argList.data() + 1 );
+    }
 
-    callbackFunc->Call( isolate->GetCurrentContext()->Global(),
-                        argList.size(), argList.data() );
+    Local<Object> eventEmitter = getEventEmitter();
+    Local<Function> emitFunction =
+        v8::Local<v8::Function>::Cast(
+            eventEmitter->Get(
+                String::NewFromUtf8( isolate, "emit", v8::String::kInternalizedString ) ) );
+
+    emitFunction->Call( eventEmitter, argList.size(), argList.data() );
 }
 
 void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
@@ -729,6 +776,7 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     SET_RO_PROPERTY( instanceTemplate, "playlist", &JsVlcPlayer::playlist );
 
     SET_RO_PROPERTY( instanceTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
+    SET_RO_PROPERTY( instanceTemplate, "events", &JsVlcPlayer::getEventEmitter );
 
     SET_RW_PROPERTY( instanceTemplate, "pixelFormat", &JsVlcPlayer::pixelFormat, &JsVlcPlayer::setPixelFormat );
     SET_RW_PROPERTY( instanceTemplate, "position", &JsVlcPlayer::position, &JsVlcPlayer::setPosition );
@@ -843,6 +891,11 @@ unsigned JsVlcPlayer::state()
 v8::Local<v8::Value> JsVlcPlayer::getVideoFrame()
 {
     return v8::Local<v8::Value>::New( v8::Isolate::GetCurrent(), _jsFrameBuffer );
+}
+
+v8::Local<v8::Object> JsVlcPlayer::getEventEmitter()
+{
+    return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsEventEmitter );
 }
 
 unsigned JsVlcPlayer::pixelFormat()

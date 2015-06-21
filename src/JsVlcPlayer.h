@@ -43,6 +43,8 @@ class JsVlcPlayer :
         CB_Max,
     };
 
+    static const char* callbackNames[CB_Max];
+
     enum class PixelFormat {
         RV32 = 0,
         I420,
@@ -67,6 +69,7 @@ public:
     unsigned state();
 
     v8::Local<v8::Value> getVideoFrame();
+    v8::Local<v8::Object> getEventEmitter();
 
     unsigned pixelFormat();
     void setPixelFormat( unsigned );
@@ -151,6 +154,7 @@ private:
     v8::UniquePersistent<v8::Value> _jsFrameBuffer;
 
     v8::UniquePersistent<v8::Function> _jsCallbacks[CB_Max];
+    v8::UniquePersistent<v8::Object> _jsEventEmitter;
 
     v8::UniquePersistent<v8::Object> _jsPlaylist;
 };
