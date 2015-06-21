@@ -52,51 +52,7 @@ public:
     static void initJsApi( const v8::Handle<v8::Object>& exports );
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
-    static void jsPixelFormat( v8::Local<v8::String> property,
-                               const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsSetPixelFormat( v8::Local<v8::String> property,
-                                  v8::Local<v8::Value> value,
-                                  const v8::PropertyCallbackInfo<void>& info );
-
-    static void jsPlaying( v8::Local<v8::String> property,
-                           const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsLength( v8::Local<v8::String> property,
-                          const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsState( v8::Local<v8::String> property,
-                         const v8::PropertyCallbackInfo<v8::Value>& info );
-
-    static void jsPlaylist( v8::Local<v8::String> property,
-                            const v8::PropertyCallbackInfo<v8::Value>& info );
-
-    static void jsPosition( v8::Local<v8::String> property,
-                            const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsSetPosition( v8::Local<v8::String> property,
-                               v8::Local<v8::Value> value,
-                               const v8::PropertyCallbackInfo<void>& info );
-
-    static void jsTime( v8::Local<v8::String> property,
-                        const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsSetTime( v8::Local<v8::String> property,
-                           v8::Local<v8::Value> value,
-                           const v8::PropertyCallbackInfo<void>& info );
-
-    static void jsVolume( v8::Local<v8::String> property,
-                          const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsSetVolume( v8::Local<v8::String> property,
-                             v8::Local<v8::Value> value,
-                             const v8::PropertyCallbackInfo<void>& info );
-
-    static void jsMute( v8::Local<v8::String> property,
-                        const v8::PropertyCallbackInfo<v8::Value>& info );
-    static void jsSetMute( v8::Local<v8::String> property,
-                           v8::Local<v8::Value> value,
-                           const v8::PropertyCallbackInfo<void>& info );
-
     static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
-    static void jsPause( const v8::FunctionCallbackInfo<v8::Value>& args );
-    static void jsTogglePause( const v8::FunctionCallbackInfo<v8::Value>& args );
-    static void jsStop( const v8::FunctionCallbackInfo<v8::Value>& args );
-    static void jsToggleMute( const v8::FunctionCallbackInfo<v8::Value>& args );
 
     static void getJsCallback( v8::Local<v8::String> property,
                                const v8::PropertyCallbackInfo<v8::Value>& info,
@@ -106,7 +62,35 @@ public:
                                const v8::PropertyCallbackInfo<void>& info,
                                Callbacks_e callback );
 
+    bool playing();
+    double length();
+    unsigned state();
+
     v8::Local<v8::Value> getVideoFrame();
+
+    unsigned pixelFormat();
+    void setPixelFormat( unsigned );
+
+    double position();
+    void setPosition( double );
+
+    double time();
+    void setTime( double );
+
+    unsigned volume();
+    void setVolume( unsigned );
+
+    bool muted();
+    void setMuted( bool );
+
+    void play();
+    void play( const std::string& mrl );
+    void pause();
+    void togglePause();
+    void stop();
+    void toggleMute();
+
+    v8::Local<v8::Object> playlist();
 
     vlc::player& player()
         { return _player; }

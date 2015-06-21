@@ -22,11 +22,9 @@ inline v8::Local<v8::Value> FromJsValue<v8::Local<v8::Value> >( const v8::Local<
 }
 
 template<>
-inline std::string FromJsValue<std::string>( const v8::Local<v8::Value>& value )
+inline bool FromJsValue<bool>( const v8::Local<v8::Value>& value )
 {
-    v8::String::Utf8Value str( value->ToString() );
-
-    return *str;
+    return value->IsTrue();
 }
 
 template<>
@@ -42,11 +40,30 @@ inline int FromJsValue<int>( const v8::Local<v8::Value>& value )
 }
 
 template<>
+inline double FromJsValue<double>( const v8::Local<v8::Value>& value )
+{
+    return static_cast<double>( v8::Local<v8::Number>::Cast( value )->Value() );
+}
+
+template<>
+inline std::string FromJsValue<std::string>( const v8::Local<v8::Value>& value )
+{
+    v8::String::Utf8Value str( value->ToString() );
+
+    return *str;
+}
+
+template<>
 std::vector<std::string> FromJsValue<std::vector<std::string> >( const v8::Local<v8::Value>& value );
 
 inline v8::Local<v8::Value> ToJsValue( const v8::Local<v8::Value>& value )
 {
     return value;
+}
+
+inline v8::Local<v8::Value> ToJsValue( bool value )
+{
+    return v8::Boolean::New( v8::Isolate::GetCurrent(), value );
 }
 
 inline v8::Local<v8::Value> ToJsValue( int value )
@@ -57,6 +74,11 @@ inline v8::Local<v8::Value> ToJsValue( int value )
 inline v8::Local<v8::Value> ToJsValue( unsigned value )
 {
     return v8::Integer::New( v8::Isolate::GetCurrent(), value );
+}
+
+inline v8::Local<v8::Value> ToJsValue( double value )
+{
+    return v8::Number::New( v8::Isolate::GetCurrent(), value );
 }
 
 template<typename C, typename ... A, size_t ... I >

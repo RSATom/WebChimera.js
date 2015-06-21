@@ -654,83 +654,74 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
     ct->SetClassName( String::NewFromUtf8( isolate, "VlcPlayer" ) );
 
-    Local<ObjectTemplate> vlcPlayerTemplate = ct->InstanceTemplate();
-    vlcPlayerTemplate->SetInternalFieldCount( 1 );
+    Local<ObjectTemplate> jsTemplate = ct->InstanceTemplate();
+    jsTemplate->SetInternalFieldCount( 1 );
 
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "RV32" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "RV32" ),
                             Integer::New( isolate, static_cast<int>( PixelFormat::RV32 ) ),
                             ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "I420" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "I420" ),
                             Integer::New( isolate, static_cast<int>( PixelFormat::I420 ) ),
                             ReadOnly );
 
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "NothingSpecial" ),
                             Integer::New( isolate, libvlc_NothingSpecial ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Opening" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Opening" ),
                             Integer::New( isolate, libvlc_Opening ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Buffering" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Buffering" ),
                             Integer::New( isolate, libvlc_Buffering ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Playing" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Playing" ),
                             Integer::New( isolate, libvlc_Playing ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Paused" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Paused" ),
                             Integer::New( isolate, libvlc_Paused ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Stopped" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Stopped" ),
                             Integer::New( isolate, libvlc_Stopped ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Ended" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Ended" ),
                             Integer::New( isolate, libvlc_Ended ), ReadOnly );
-    vlcPlayerTemplate->Set( String::NewFromUtf8( isolate, "Error" ),
+    jsTemplate->Set( String::NewFromUtf8( isolate, "Error" ),
                             Integer::New( isolate, libvlc_Error ), ReadOnly );
 
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "pixelFormat" ),
-                                    jsPixelFormat, jsSetPixelFormat );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onFrameSetup", CB_FrameSetup );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onFrameReady", CB_FrameReady );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onFrameCleanup", CB_FrameCleanup );
 
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playing" ),
-                                    jsPlaying );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "length" ),
-                                    jsLength );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "state" ),
-                                    jsState );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "playlist" ),
-                                    jsPlaylist );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onMediaChanged", CB_MediaPlayerMediaChanged );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onNothingSpecial", CB_MediaPlayerNothingSpecial );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onOpening", CB_MediaPlayerOpening );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onBuffering", CB_MediaPlayerBuffering );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onPlaying", CB_MediaPlayerPlaying );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onPaused", CB_MediaPlayerPaused );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onForward", CB_MediaPlayerForward );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onBackward", CB_MediaPlayerBackward );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onEncounteredError", CB_MediaPlayerEncounteredError );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onEndReached", CB_MediaPlayerEndReached );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onStopped", CB_MediaPlayerStopped );
 
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "position" ),
-                                    jsPosition, jsSetPosition );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "time" ),
-                                    jsTime, jsSetTime );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "volume" ),
-                                    jsVolume, jsSetVolume );
-    vlcPlayerTemplate->SetAccessor( String::NewFromUtf8( isolate, "mute" ),
-                                    jsMute, jsSetMute );
-
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameSetup", CB_FrameSetup );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameReady", CB_FrameReady );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onFrameCleanup", CB_FrameCleanup );
-
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onMediaChanged", CB_MediaPlayerMediaChanged );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onNothingSpecial", CB_MediaPlayerNothingSpecial );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onOpening", CB_MediaPlayerOpening );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onBuffering", CB_MediaPlayerBuffering );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPlaying", CB_MediaPlayerPlaying );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPaused", CB_MediaPlayerPaused );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onForward", CB_MediaPlayerForward );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onBackward", CB_MediaPlayerBackward );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onEncounteredError", CB_MediaPlayerEncounteredError );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onEndReached", CB_MediaPlayerEndReached );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onStopped", CB_MediaPlayerStopped );
-
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onTimeChanged", CB_MediaPlayerTimeChanged );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPositionChanged", CB_MediaPlayerPositionChanged );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onSeekableChanged", CB_MediaPlayerSeekableChanged );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onPausableChanged", CB_MediaPlayerPausableChanged );
-    SET_CALLBACK_PROPERTY( vlcPlayerTemplate, "onLengthChanged", CB_MediaPlayerLengthChanged );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onTimeChanged", CB_MediaPlayerTimeChanged );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onPositionChanged", CB_MediaPlayerPositionChanged );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onSeekableChanged", CB_MediaPlayerSeekableChanged );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onPausableChanged", CB_MediaPlayerPausableChanged );
+    SET_CALLBACK_PROPERTY( jsTemplate, "onLengthChanged", CB_MediaPlayerLengthChanged );
 
     NODE_SET_PROTOTYPE_METHOD( ct, "play", jsPlay );
-    NODE_SET_PROTOTYPE_METHOD( ct, "pause", jsPause );
-    NODE_SET_PROTOTYPE_METHOD( ct, "togglePause", jsTogglePause );
-    NODE_SET_PROTOTYPE_METHOD( ct, "stop", jsStop );
-    NODE_SET_PROTOTYPE_METHOD( ct, "toggleMute", jsToggleMute );
 
-    SET_RO_PROPERTY( vlcPlayerTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
+    SET_RO_PROPERTY( jsTemplate, "playing", &JsVlcPlayer::playing );
+    SET_RO_PROPERTY( jsTemplate, "length", &JsVlcPlayer::length );
+    SET_RO_PROPERTY( jsTemplate, "state", &JsVlcPlayer::state );
+    SET_RO_PROPERTY( jsTemplate, "playlist", &JsVlcPlayer::playlist );
+
+    SET_RO_PROPERTY( jsTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
+
+    SET_RW_PROPERTY( jsTemplate, "pixelFormat", &JsVlcPlayer::pixelFormat, &JsVlcPlayer::setPixelFormat );
+    SET_RW_PROPERTY( jsTemplate, "position", &JsVlcPlayer::position, &JsVlcPlayer::setPosition );
+    SET_RW_PROPERTY( jsTemplate, "time", &JsVlcPlayer::time, &JsVlcPlayer::setTime );
+    SET_RW_PROPERTY( jsTemplate, "volume", &JsVlcPlayer::volume, &JsVlcPlayer::setVolume );
+    SET_RW_PROPERTY( jsTemplate, "mute", &JsVlcPlayer::muted, &JsVlcPlayer::setMuted );
+
+    SET_METHOD( ct, "pause", &JsVlcPlayer::pause );
+    SET_METHOD( ct, "togglePause", &JsVlcPlayer::togglePause );
+    SET_METHOD( ct, "stop",  &JsVlcPlayer::stop );
+    SET_METHOD( ct, "toggleMute", &JsVlcPlayer::toggleMute );
 
     _jsConstructor.Reset( isolate, ct->GetFunction() );
     exports->Set( String::NewFromUtf8( isolate, "VlcPlayer" ), ct->GetFunction() );
@@ -761,288 +752,20 @@ void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     }
 }
 
-void JsVlcPlayer::jsPixelFormat( v8::Local<v8::String> property,
-                                 const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-
-    info.GetReturnValue().Set(
-        Integer::New( isolate,
-                      static_cast<int>( jsPlayer->_pixelFormat ) ) );
-}
-
-void JsVlcPlayer::jsSetPixelFormat( v8::Local<v8::String> property,
-                                    v8::Local<v8::Value> value,
-                                    const v8::PropertyCallbackInfo<void>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-
-    Local<Integer> jsPixelFormat = Local<Integer>::Cast( value );
-    if( !jsPixelFormat.IsEmpty() ) {
-        switch( jsPixelFormat->Value() ) {
-            case static_cast<decltype( jsPixelFormat->Value() )>( PixelFormat::RV32 ):
-                jsPlayer->_pixelFormat = PixelFormat::RV32;
-                break;
-            case static_cast<decltype( jsPixelFormat->Value() )>( PixelFormat::I420 ):
-                jsPlayer->_pixelFormat = PixelFormat::I420;
-                break;
-        }
-    }
-}
-
-void JsVlcPlayer::jsPlaying( v8::Local<v8::String> property,
-                             const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set( Boolean::New( isolate, player.is_playing() ) );
-}
-
-void JsVlcPlayer::jsLength( v8::Local<v8::String> property,
-                            const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set(
-        Number::New( isolate, static_cast<double>( player.get_length() ) ) );
-}
-
-void JsVlcPlayer::jsState( v8::Local<v8::String> property,
-                           const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set( Integer::New( isolate, player.get_state() ) );
-}
-
-void JsVlcPlayer::jsPlaylist( v8::Local<v8::String> property,
-                              const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-
-    info.GetReturnValue().Set( Local<Object>::New( isolate, jsPlayer->_jsPlaylist ) );
-}
-
-void JsVlcPlayer::jsPosition( v8::Local<v8::String> property,
-                              const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set( Number::New( isolate, player.get_position() ) );
-}
-
-void JsVlcPlayer::jsSetPosition( v8::Local<v8::String> property,
-                                 v8::Local<v8::Value> value,
-                                 const v8::PropertyCallbackInfo<void>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    Local<Number> jsPosition = Local<Number>::Cast( value );
-    if( !jsPosition.IsEmpty() )
-        player.set_position( static_cast<float>( jsPosition->Value() ) );
-}
-
-void JsVlcPlayer::jsTime( v8::Local<v8::String> property,
-                          const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set(
-        Number::New( isolate, static_cast<double>( player.get_time() ) ) );
-}
-
-void JsVlcPlayer::jsSetTime( v8::Local<v8::String> property,
-                             v8::Local<v8::Value> value,
-                             const v8::PropertyCallbackInfo<void>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    Local<Number> jsTime = Local<Number>::Cast( value );
-    if( !jsTime.IsEmpty() )
-        player.set_time( static_cast<libvlc_time_t>( jsTime->Value() ) );
-}
-
-void JsVlcPlayer::jsVolume( v8::Local<v8::String> property,
-                            const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set( Number::New( isolate, player.audio().get_volume() ) );
-}
-
-void JsVlcPlayer::jsSetVolume( v8::Local<v8::String> property,
-                               v8::Local<v8::Value> value,
-                               const v8::PropertyCallbackInfo<void>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    Local<Integer> jsVolume = Local<Integer>::Cast( value );
-    if( !jsVolume.IsEmpty() && jsVolume->Value() > 0 )
-        player.audio().set_volume( static_cast<unsigned>( jsVolume->Value() ) );
-}
-
-void JsVlcPlayer::jsMute( v8::Local<v8::String> property,
-                          const v8::PropertyCallbackInfo<v8::Value>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    info.GetReturnValue().Set( Boolean::New( isolate, player.audio().is_muted() ) );
-}
-
-void JsVlcPlayer::jsSetMute( v8::Local<v8::String> property,
-                             v8::Local<v8::Value> value,
-                             const v8::PropertyCallbackInfo<void>& info )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( info.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    if( !value.IsEmpty() )
-        player.audio().set_mute( value->IsTrue() );
-}
-
 void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     using namespace v8;
 
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
-    vlc::player& player = jsPlayer->_player;
 
     if( args.Length() == 0 ) {
-        player.play();
+        jsPlayer->play();
     } else if( args.Length() ==  1 ) {
         String::Utf8Value mrl( args[0]->ToString() );
         if( mrl.length() ) {
-            player.clear_items();
-            const int idx = player.add_media( *mrl );
-            if( idx >= 0 ) {
-                player.play( idx );
-            }
+            jsPlayer->play( *mrl );
         }
     }
-}
-
-void JsVlcPlayer::jsPause( const v8::FunctionCallbackInfo<v8::Value>& args )
-{
-    if( args.Length() != 0 )
-        return;
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    player.pause();
-}
-
-void JsVlcPlayer::jsTogglePause( const v8::FunctionCallbackInfo<v8::Value>& args )
-{
-    if( args.Length() != 0 )
-        return;
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    player.togglePause();
-}
-
-void JsVlcPlayer::jsStop( const v8::FunctionCallbackInfo<v8::Value>& args )
-{
-    if( args.Length() != 0 )
-        return;
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    player.stop();
-}
-
-void JsVlcPlayer::jsToggleMute( const v8::FunctionCallbackInfo<v8::Value>& args )
-{
-    if( args.Length() != 0 )
-        return;
-
-    JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>( args.Holder() );
-    vlc::player& player = jsPlayer->_player;
-
-    player.audio().toggle_mute();
 }
 
 void JsVlcPlayer::getJsCallback( v8::Local<v8::String> property,
@@ -1082,7 +805,119 @@ void JsVlcPlayer::setJsCallback( v8::Local<v8::String> property,
         jsPlayer->_jsCallbacks[callback].Reset( isolate, callbackFunc );
 }
 
+bool JsVlcPlayer::playing()
+{
+    return player().is_playing();
+}
+
+double JsVlcPlayer::length()
+{
+    return static_cast<double>( player().get_length() );
+}
+
+unsigned JsVlcPlayer::state()
+{
+    return player().get_state();
+}
+
 v8::Local<v8::Value> JsVlcPlayer::getVideoFrame()
 {
     return v8::Local<v8::Value>::New( v8::Isolate::GetCurrent(), _jsFrameBuffer );
+}
+
+unsigned JsVlcPlayer::pixelFormat()
+{
+    return static_cast<unsigned>( _pixelFormat );
+}
+
+void JsVlcPlayer::setPixelFormat( unsigned format )
+{
+    switch( format ) {
+        case static_cast<unsigned>( PixelFormat::RV32 ):
+            _pixelFormat = PixelFormat::RV32;
+            break;
+        case static_cast<unsigned>( PixelFormat::I420 ):
+            _pixelFormat = PixelFormat::I420;
+            break;
+    }
+}
+
+double JsVlcPlayer::position()
+{
+    return player().get_position();
+}
+
+void JsVlcPlayer::setPosition( double position )
+{
+    player().set_position( static_cast<float>( position ) );
+}
+
+double JsVlcPlayer::time()
+{
+    return static_cast<double>( player().get_time() );
+}
+
+void JsVlcPlayer::setTime( double time )
+{
+    player().set_time( static_cast<libvlc_time_t>( time ) );
+}
+
+unsigned JsVlcPlayer::volume()
+{
+    return player().audio().get_volume();
+}
+
+void JsVlcPlayer::setVolume( unsigned volume )
+{
+    player().audio().set_volume( volume );
+}
+
+bool JsVlcPlayer::muted()
+{
+    return player().audio().is_muted();
+}
+
+void JsVlcPlayer::setMuted( bool mute )
+{
+    player().audio().set_mute( mute );
+}
+
+void JsVlcPlayer::play()
+{
+    player().play();
+}
+
+void JsVlcPlayer::play( const std::string& mrl )
+{
+    vlc::player& p = player();
+
+    p.clear_items();
+    const int idx = p.add_media( mrl.c_str() );
+    if( idx >= 0 )
+        p.play( idx );
+}
+
+void JsVlcPlayer::pause()
+{
+    player().pause();
+}
+
+void JsVlcPlayer::togglePause()
+{
+    player().togglePause();
+}
+
+void JsVlcPlayer::stop()
+{
+    player().stop();
+}
+
+void JsVlcPlayer::toggleMute()
+{
+    player().audio().toggle_mute();
+}
+
+v8::Local<v8::Object> JsVlcPlayer::playlist()
+{
+    return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsPlaylist );
 }
