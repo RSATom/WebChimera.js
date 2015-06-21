@@ -34,18 +34,21 @@ void JsVlcPlaylistItems::initJsApi()
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
 
-    Local<FunctionTemplate> ct = FunctionTemplate::New( isolate, jsCreate );
-    ct->SetClassName( String::NewFromUtf8( isolate, "JsVlcPlaylistItems" ) );
+    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
+    constructorTemplate->SetClassName(
+        String::NewFromUtf8( isolate, "VlcPlaylistItems", v8::String::kInternalizedString ) );
 
-    Local<ObjectTemplate> jsTemplate = ct->InstanceTemplate();
-    jsTemplate->SetInternalFieldCount( 1 );
+    Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
+    Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
+    instanceTemplate->SetInternalFieldCount( 1 );
 
-    SET_RO_PROPERTY( jsTemplate, "count", &JsVlcPlaylistItems::count );
+    SET_RO_PROPERTY( instanceTemplate, "count", &JsVlcPlaylistItems::count );
 
-    SET_METHOD( ct, "clear", &JsVlcPlaylistItems::clear );
-    SET_METHOD( ct, "remove", &JsVlcPlaylistItems::remove );
+    SET_METHOD( constructorTemplate, "clear", &JsVlcPlaylistItems::clear );
+    SET_METHOD( constructorTemplate, "remove", &JsVlcPlaylistItems::remove );
 
-    _jsConstructor.Reset( isolate, ct->GetFunction() );
+    Local<Function> constructor = constructorTemplate->GetFunction();
+    _jsConstructor.Reset( isolate, constructor );
 }
 
 void JsVlcPlaylistItems::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
