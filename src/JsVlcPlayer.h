@@ -122,7 +122,10 @@ private:
     void setupBuffer( const I420FrameSetupData& );
     void frameUpdated();
 
-    void media_player_event( const libvlc_event_t* e );
+    //could come from worker thread
+    void media_player_event( const libvlc_event_t* );
+
+    void handleLibvlcEvent( const libvlc_event_t& );
 
     void callCallback( Callbacks_e callback,
                        std::initializer_list<v8::Local<v8::Value> > list = std::initializer_list<v8::Local<v8::Value> >() );

@@ -183,85 +183,7 @@ struct JsVlcPlayer::LibvlcEvent : public JsVlcPlayer::AsyncData
 
 void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
 {
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    Callbacks_e callback = CB_Max;
-
-    std::initializer_list<v8::Local<v8::Value> > list;
-
-    switch( libvlcEvent.type ) {
-        case libvlc_MediaPlayerMediaChanged:
-            callback = CB_MediaPlayerMediaChanged;
-            break;
-        case libvlc_MediaPlayerNothingSpecial:
-            callback = CB_MediaPlayerNothingSpecial;
-            break;
-        case libvlc_MediaPlayerOpening:
-            callback = CB_MediaPlayerOpening;
-            break;
-        case libvlc_MediaPlayerBuffering: {
-            callback = CB_MediaPlayerBuffering;
-            list = { Number::New( isolate, libvlcEvent.u.media_player_buffering.new_cache ) };
-            break;
-        }
-        case libvlc_MediaPlayerPlaying:
-            callback = CB_MediaPlayerPlaying;
-            break;
-        case libvlc_MediaPlayerPaused:
-            callback = CB_MediaPlayerPaused;
-            break;
-        case libvlc_MediaPlayerStopped:
-            callback = CB_MediaPlayerStopped;
-            break;
-        case libvlc_MediaPlayerForward:
-            callback = CB_MediaPlayerForward;
-            break;
-        case libvlc_MediaPlayerBackward:
-            callback = CB_MediaPlayerBackward;
-            break;
-        case libvlc_MediaPlayerEndReached:
-            callback = CB_MediaPlayerEndReached;
-            break;
-        case libvlc_MediaPlayerEncounteredError:
-            callback = CB_MediaPlayerEncounteredError;
-            break;
-        case libvlc_MediaPlayerTimeChanged: {
-            callback = CB_MediaPlayerTimeChanged;
-            const double new_time =
-                static_cast<double>( libvlcEvent.u.media_player_time_changed.new_time );
-            list = { Number::New( isolate, static_cast<double>( new_time ) ) };
-            break;
-        }
-        case libvlc_MediaPlayerPositionChanged: {
-            callback = CB_MediaPlayerPositionChanged;
-            list = { Number::New( isolate, libvlcEvent.u.media_player_position_changed.new_position ) };
-            break;
-        }
-        case libvlc_MediaPlayerSeekableChanged: {
-            callback = CB_MediaPlayerSeekableChanged;
-            list = { Boolean::New( isolate, libvlcEvent.u.media_player_seekable_changed.new_seekable != 0 ) };
-            break;
-        }
-        case libvlc_MediaPlayerPausableChanged: {
-            callback = CB_MediaPlayerPausableChanged;
-            list = { Boolean::New( isolate, libvlcEvent.u.media_player_pausable_changed.new_pausable != 0 ) };
-            break;
-        }
-        case libvlc_MediaPlayerLengthChanged: {
-            callback = CB_MediaPlayerLengthChanged;
-            const double new_length =
-                static_cast<double>( libvlcEvent.u.media_player_length_changed.new_length );
-            list = { Number::New( isolate, new_length ) };
-            break;
-        }
-    }
-
-    if( callback != CB_Max ) {
-        jsPlayer->callCallback( callback, list );
-    }
+    jsPlayer->handleLibvlcEvent( libvlcEvent );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -784,6 +706,89 @@ void JsVlcPlayer::frameUpdated()
     HandleScope scope( isolate );
 
     callCallback( CB_FrameReady, { Local<Value>::New( Isolate::GetCurrent(), _jsFrameBuffer ) } );
+}
+
+void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Callbacks_e callback = CB_Max;
+
+    std::initializer_list<v8::Local<v8::Value> > list;
+
+    switch( libvlcEvent.type ) {
+        case libvlc_MediaPlayerMediaChanged:
+            callback = CB_MediaPlayerMediaChanged;
+            break;
+        case libvlc_MediaPlayerNothingSpecial:
+            callback = CB_MediaPlayerNothingSpecial;
+            break;
+        case libvlc_MediaPlayerOpening:
+            callback = CB_MediaPlayerOpening;
+            break;
+        case libvlc_MediaPlayerBuffering: {
+            callback = CB_MediaPlayerBuffering;
+            list = { Number::New( isolate, libvlcEvent.u.media_player_buffering.new_cache ) };
+            break;
+        }
+        case libvlc_MediaPlayerPlaying:
+            callback = CB_MediaPlayerPlaying;
+            break;
+        case libvlc_MediaPlayerPaused:
+            callback = CB_MediaPlayerPaused;
+            break;
+        case libvlc_MediaPlayerStopped:
+            callback = CB_MediaPlayerStopped;
+            break;
+        case libvlc_MediaPlayerForward:
+            callback = CB_MediaPlayerForward;
+            break;
+        case libvlc_MediaPlayerBackward:
+            callback = CB_MediaPlayerBackward;
+            break;
+        case libvlc_MediaPlayerEndReached:
+            callback = CB_MediaPlayerEndReached;
+            break;
+        case libvlc_MediaPlayerEncounteredError:
+            callback = CB_MediaPlayerEncounteredError;
+            break;
+        case libvlc_MediaPlayerTimeChanged: {
+            callback = CB_MediaPlayerTimeChanged;
+            const double new_time =
+                static_cast<double>( libvlcEvent.u.media_player_time_changed.new_time );
+            list = { Number::New( isolate, static_cast<double>( new_time ) ) };
+            break;
+        }
+        case libvlc_MediaPlayerPositionChanged: {
+            callback = CB_MediaPlayerPositionChanged;
+            list = { Number::New( isolate, libvlcEvent.u.media_player_position_changed.new_position ) };
+            break;
+        }
+        case libvlc_MediaPlayerSeekableChanged: {
+            callback = CB_MediaPlayerSeekableChanged;
+            list = { Boolean::New( isolate, libvlcEvent.u.media_player_seekable_changed.new_seekable != 0 ) };
+            break;
+        }
+        case libvlc_MediaPlayerPausableChanged: {
+            callback = CB_MediaPlayerPausableChanged;
+            list = { Boolean::New( isolate, libvlcEvent.u.media_player_pausable_changed.new_pausable != 0 ) };
+            break;
+        }
+        case libvlc_MediaPlayerLengthChanged: {
+            callback = CB_MediaPlayerLengthChanged;
+            const double new_length =
+                static_cast<double>( libvlcEvent.u.media_player_length_changed.new_length );
+            list = { Number::New( isolate, new_length ) };
+            break;
+        }
+    }
+
+    if( callback != CB_Max ) {
+        callCallback( callback, list );
+    }
 }
 
 void JsVlcPlayer::callCallback( Callbacks_e callback,
