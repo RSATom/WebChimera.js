@@ -9,16 +9,17 @@ class JsVlcPlaylistItems :
     public node::ObjectWrap
 {
 public:
+    static void initJsApi();
     static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
 
-    static void initJsApi();
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
+    v8::Local<v8::Object> item( uint32_t index );
 
     unsigned count();
     void clear();
     bool remove( unsigned idx );
 
 private:
+    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
     JsVlcPlaylistItems( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
 
 private:

@@ -1,34 +1,15 @@
-#include "JsPlaylistItems.h"
+#include "JsVlcPlaylistItems.h"
 
 #include "NodeTools.h"
 #include "JsVlcPlayer.h"
+#include "JsVlcMedia.h"
 
 v8::Persistent<v8::Function> JsVlcPlaylistItems::_jsConstructor;
 
-JsVlcPlaylistItems::JsVlcPlaylistItems( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
-    _jsPlayer( jsPlayer )
-{
-    Wrap( thisObject );
-}
-
-v8::UniquePersistent<v8::Object> JsVlcPlaylistItems::create( JsVlcPlayer& player )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    Local<Function> constructor =
-        Local<Function>::New( isolate, _jsConstructor );
-
-    Local<Value> argv[] = { player.handle() };
-
-    return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
-}
-
-
 void JsVlcPlaylistItems::initJsApi()
 {
+    JsVlcMedia::initJsApi();
+
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
@@ -44,11 +25,28 @@ void JsVlcPlaylistItems::initJsApi()
 
     SET_RO_PROPERTY( instanceTemplate, "count", &JsVlcPlaylistItems::count );
 
+    SET_RO_INDEXED_PROPERTY( instanceTemplate, &JsVlcPlaylistItems::item );
+
     SET_METHOD( constructorTemplate, "clear", &JsVlcPlaylistItems::clear );
     SET_METHOD( constructorTemplate, "remove", &JsVlcPlaylistItems::remove );
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
+}
+
+v8::UniquePersistent<v8::Object> JsVlcPlaylistItems::create( JsVlcPlayer& player )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Local<Function> constructor =
+        Local<Function>::New( isolate, _jsConstructor );
+
+    Local<Value> argv[] = { player.handle() };
+
+    return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
 }
 
 void JsVlcPlaylistItems::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
@@ -75,6 +73,16 @@ void JsVlcPlaylistItems::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& ar
     }
 }
 
+JsVlcPlaylistItems::JsVlcPlaylistItems( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
+    _jsPlayer( jsPlayer )
+{
+    Wrap( thisObject );
+}
+
+v8::Local<v8::Object> JsVlcPlaylistItems::item( uint32_t index )
+{
+    return JsVlcMedia::create( *_jsPlayer, _jsPlayer->player().get_media( index ) );
+}
 
 unsigned JsVlcPlaylistItems::count()
 {
