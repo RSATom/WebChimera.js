@@ -81,6 +81,11 @@ inline v8::Local<v8::Value> ToJsValue( double value )
     return v8::Number::New( v8::Isolate::GetCurrent(), value );
 }
 
+inline v8::Local<v8::Value> ToJsValue( const std::string& value )
+{
+    return v8::String::NewFromUtf8( v8::Isolate::GetCurrent(), value.c_str() );
+}
+
 template<typename C, typename ... A, size_t ... I >
 void CallMethod( void ( C::* method) ( A ... ),
                  const v8::FunctionCallbackInfo<v8::Value>& info,
