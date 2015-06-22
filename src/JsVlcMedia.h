@@ -13,8 +13,8 @@ class JsVlcMedia :
 public:
     static void initJsApi();
 
-    static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player,
-                                                    const vlc::media& media  );
+    static v8::Local<v8::Object> create( JsVlcPlayer& player,
+                                         const vlc::media& media  );
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
     std::string artist();

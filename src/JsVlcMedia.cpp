@@ -50,20 +50,20 @@ void JsVlcMedia::initJsApi()
     _jsConstructor.Reset( isolate, constructor );
 }
 
-v8::UniquePersistent<v8::Object> JsVlcMedia::create( JsVlcPlayer& player,
-                                                     const vlc::media& media )
+v8::Local<v8::Object> JsVlcMedia::create( JsVlcPlayer& player,
+                                          const vlc::media& media )
 {
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
+    EscapableHandleScope scope( isolate );
 
     Local<Function> constructor =
         Local<Function>::New( isolate, _jsConstructor );
 
-    Local<Value> argv[] = { player.handle(), v8::External::New( isolate, const_cast<vlc::media*>( &media ) ) };
+    Local<Value> argv[] = { player.handle(), External::New( isolate, const_cast<vlc::media*>( &media ) ) };
 
-    return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
+    return scope.Escape( constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) );
 }
 
 void JsVlcMedia::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
