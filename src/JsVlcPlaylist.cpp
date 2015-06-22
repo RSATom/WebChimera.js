@@ -5,27 +5,6 @@
 
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
-JsVlcPlaylist::JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
-    _jsPlayer( jsPlayer )
-{
-    Wrap( thisObject );
-}
-
-v8::UniquePersistent<v8::Object> JsVlcPlaylist::create( JsVlcPlayer& player )
-{
-    using namespace v8;
-
-    Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope( isolate );
-
-    Local<Function> constructor =
-        Local<Function>::New( isolate, _jsConstructor );
-
-    Local<Value> argv[] = { player.handle() };
-
-    return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
-}
-
 void JsVlcPlaylist::initJsApi()
 {
     using namespace v8;
@@ -72,6 +51,21 @@ void JsVlcPlaylist::initJsApi()
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
+}
+
+v8::UniquePersistent<v8::Object> JsVlcPlaylist::create( JsVlcPlayer& player )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    Local<Function> constructor =
+        Local<Function>::New( isolate, _jsConstructor );
+
+    Local<Value> argv[] = { player.handle() };
+
+    return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
 }
 
 void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )

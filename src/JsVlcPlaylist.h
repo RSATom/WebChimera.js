@@ -20,7 +20,6 @@ public:
     static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
 
     static void initJsApi();
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
     unsigned itemCount();
     bool isPlaying();
@@ -45,6 +44,7 @@ public:
     void advanceItem( unsigned idx, int count );
 
 private:
+    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
     JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
 
 private:
