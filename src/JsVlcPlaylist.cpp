@@ -2,16 +2,18 @@
 
 #include "NodeTools.h"
 #include "JsVlcPlayer.h"
+#include "JsVlcPlaylistItems.h"
 
 v8::Persistent<v8::Function> JsVlcPlaylist::_jsConstructor;
 
 void JsVlcPlaylist::initJsApi()
 {
+    JsVlcPlaylistItems::initJsApi();
+
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope( isolate );
-
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
     constructorTemplate->SetClassName( String::NewFromUtf8( isolate, "VlcPlaylist", v8::String::kInternalizedString ) );
@@ -32,6 +34,7 @@ void JsVlcPlaylist::initJsApi()
 
     SET_RO_PROPERTY( instanceTemplate, "itemCount", &JsVlcPlaylist::itemCount );
     SET_RO_PROPERTY( instanceTemplate, "isPlaying", &JsVlcPlaylist::isPlaying );
+    SET_RO_PROPERTY( instanceTemplate, "items", &JsVlcPlaylist::items );
 
     SET_RW_PROPERTY( instanceTemplate, "currentItem", &JsVlcPlaylist::currentItem, &JsVlcPlaylist::setCurrentItem );
     SET_RW_PROPERTY( instanceTemplate, "mode", &JsVlcPlaylist::mode, &JsVlcPlaylist::setMode );
@@ -90,6 +93,14 @@ void JsVlcPlaylist::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
         args.GetReturnValue().Set(
             constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) );
     }
+}
+
+JsVlcPlaylist::JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
+    _jsPlayer( jsPlayer )
+{
+    Wrap( thisObject );
+
+    _jsItems = JsVlcPlaylistItems::create( *jsPlayer );
 }
 
 unsigned JsVlcPlaylist::itemCount()
@@ -202,4 +213,9 @@ bool JsVlcPlaylist::removeItem( unsigned idx )
 void JsVlcPlaylist::advanceItem( unsigned idx, int count )
 {
     _jsPlayer->player().advance_item( idx, count );
+}
+
+v8::Local<v8::Object> JsVlcPlaylist::items()
+{
+    return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsItems );
 }

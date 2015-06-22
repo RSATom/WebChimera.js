@@ -43,6 +43,8 @@ public:
     bool removeItem( unsigned idx );
     void advanceItem( unsigned idx, int count );
 
+    v8::Local<v8::Object> items();
+
 private:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
     JsVlcPlaylist( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
@@ -51,4 +53,6 @@ private:
     static v8::Persistent<v8::Function> _jsConstructor;
 
     JsVlcPlayer* _jsPlayer;
+
+    v8::UniquePersistent<v8::Object> _jsItems;
 };
