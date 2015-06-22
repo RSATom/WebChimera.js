@@ -469,6 +469,9 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
         }
     );
     _async.data = this;
+
+    uv_timer_init( loop, &_errorTimer );
+    _errorTimer.data = this;
 }
 
 void JsVlcPlayer::initLibvlc( const v8::Local<v8::Array>& vlcOpts )
@@ -515,6 +518,9 @@ void JsVlcPlayer::close()
 
     _async.data = nullptr;
     uv_close( reinterpret_cast<uv_handle_t*>( &_async ), 0 );
+
+    _errorTimer.data = nullptr;
+    uv_timer_stop( &_errorTimer );
 
     if( _libvlc ) {
         libvlc_release( _libvlc );
@@ -751,9 +757,20 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
             break;
         case libvlc_MediaPlayerEndReached:
             callback = CB_MediaPlayerEndReached;
+            uv_timer_stop( &_errorTimer );
+            currentItemEndReached();
             break;
         case libvlc_MediaPlayerEncounteredError:
             callback = CB_MediaPlayerEncounteredError;
+            //sometimes libvlc do some internal error handling
+            //and sends EndReached after that,
+            //so we have to wait it some time,
+            //to not break playlist ligic.
+            uv_timer_start( &_errorTimer,
+                [] ( uv_timer_t* handle ) {
+                    if( handle->data )
+                        static_cast<JsVlcPlayer*>( handle->data )->currentItemEndReached();
+                }, 1000, 0 );
             break;
         case libvlc_MediaPlayerTimeChanged: {
             callback = CB_MediaPlayerTimeChanged;
@@ -789,6 +806,12 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
     if( callback != CB_Max ) {
         callCallback( callback, list );
     }
+}
+
+void JsVlcPlayer::currentItemEndReached()
+{
+    if( vlc::mode_single != player().get_playback_mode() )
+        player().next();
 }
 
 void JsVlcPlayer::callCallback( Callbacks_e callback,

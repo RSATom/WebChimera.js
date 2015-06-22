@@ -127,6 +127,8 @@ private:
 
     void handleLibvlcEvent( const libvlc_event_t& );
 
+    void currentItemEndReached();
+
     void callCallback( Callbacks_e callback,
                        std::initializer_list<v8::Local<v8::Value> > list = std::initializer_list<v8::Local<v8::Value> >() );
 
@@ -160,4 +162,6 @@ private:
     v8::UniquePersistent<v8::Object> _jsEventEmitter;
 
     v8::UniquePersistent<v8::Object> _jsPlaylist;
+
+    uv_timer_t _errorTimer;
 };
