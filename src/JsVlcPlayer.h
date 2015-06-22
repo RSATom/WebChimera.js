@@ -52,7 +52,6 @@ class JsVlcPlayer :
 
 public:
     static void initJsApi( const v8::Handle<v8::Object>& exports );
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
 
     static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
 
@@ -99,6 +98,7 @@ public:
         { return _player; }
 
 private:
+    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
     JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts );
     ~JsVlcPlayer();
 
