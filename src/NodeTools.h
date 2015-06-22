@@ -159,6 +159,22 @@ void SetPropertyValue( void ( C::* setter ) (V),
     ( instance->*setter ) ( FromJsValue<cleanPropType>( value ) );
 }
 
+template<typename R, typename C>
+void GetIndexedPropertyValue( R ( C::* getter ) ( uint32_t index ),
+                              uint32_t index,
+                              const v8::PropertyCallbackInfo<v8::Value>& info )
+{
+    using namespace v8;
+
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope( isolate );
+
+    C* instance = node::ObjectWrap::Unwrap<C>( info.Holder() );
+
+    info.GetReturnValue().Set( ToJsValue( ( instance->*getter ) ( index ) ) );
+}
+
+
 #define SET_METHOD( funTemplate, name, member )                  \
     NODE_SET_PROTOTYPE_METHOD( funTemplate, name,                \
         [] ( const v8::FunctionCallbackInfo<v8::Value>& info ) { \
@@ -193,3 +209,12 @@ void SetPropertyValue( void ( C::* setter ) (V),
     )
 
 v8::Local<v8::Object> Require( const char* module );
+
+#define SET_RO_INDEXED_PROPERTY( objTemplate, member )         \
+    objTemplate->SetIndexedPropertyHandler(                    \
+        [] ( uint32_t index,                                   \
+             const v8::PropertyCallbackInfo<v8::Value>& info ) \
+        {                                                      \
+            GetIndexedPropertyValue( member, index, info );    \
+        }                                                      \
+    )
