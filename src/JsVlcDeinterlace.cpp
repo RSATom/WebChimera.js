@@ -1,15 +1,12 @@
-#include "JsVlcVideo.h"
+#include "JsVlcDeinterlace.h"
 
 #include "NodeTools.h"
 #include "JsVlcPlayer.h"
-#include "JsVlcDeinterlace.h"
 
-v8::Persistent<v8::Function> JsVlcVideo::_jsConstructor;
+v8::Persistent<v8::Function> JsVlcDeinterlace::_jsConstructor;
 
-void JsVlcVideo::initJsApi()
+void JsVlcDeinterlace::initJsApi()
 {
-    JsVlcDeinterlace::initJsApi();
-
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
@@ -17,23 +14,20 @@ void JsVlcVideo::initJsApi()
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
     constructorTemplate->SetClassName(
-        String::NewFromUtf8( isolate, "VlcVideo", v8::String::kInternalizedString ) );
+        String::NewFromUtf8( isolate, "VlcDeinterlace", v8::String::kInternalizedString ) );
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
     instanceTemplate->SetInternalFieldCount( 1 );
 
-    SET_RO_PROPERTY( instanceTemplate, "count", &JsVlcVideo::count );
-
-    SET_RO_PROPERTY( instanceTemplate, "deinterlace", &JsVlcVideo::deinterlace );
-
-    SET_RW_PROPERTY( instanceTemplate, "track", &JsVlcVideo::track, &JsVlcVideo::setTrack );
+    SET_METHOD( constructorTemplate, "enable", &JsVlcDeinterlace::enable );
+    SET_METHOD( constructorTemplate, "disable", &JsVlcDeinterlace::disable );
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
 }
 
-v8::UniquePersistent<v8::Object> JsVlcVideo::create( JsVlcPlayer& player )
+v8::UniquePersistent<v8::Object> JsVlcDeinterlace::create( JsVlcPlayer& player )
 {
     using namespace v8;
 
@@ -48,7 +42,7 @@ v8::UniquePersistent<v8::Object> JsVlcVideo::create( JsVlcPlayer& player )
     return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
 }
 
-void JsVlcVideo::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
+void JsVlcDeinterlace::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     using namespace v8;
 
@@ -60,7 +54,7 @@ void JsVlcVideo::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
         JsVlcPlayer* jsPlayer =
             ObjectWrap::Unwrap<JsVlcPlayer>( Handle<Object>::Cast( args[0] ) );
         if( jsPlayer ) {
-            JsVlcVideo* jsPlaylist = new JsVlcVideo( thisObject, jsPlayer );
+            JsVlcDeinterlace* jsPlaylist = new JsVlcDeinterlace( thisObject, jsPlayer );
             args.GetReturnValue().Set( thisObject );
         }
     } else {
@@ -72,30 +66,18 @@ void JsVlcVideo::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     }
 }
 
-JsVlcVideo::JsVlcVideo( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
+JsVlcDeinterlace::JsVlcDeinterlace( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
     _jsPlayer( jsPlayer )
 {
     Wrap( thisObject );
-
-    _jsDeinterlace = JsVlcDeinterlace::create( *jsPlayer );
 }
 
-unsigned JsVlcVideo::count()
+void JsVlcDeinterlace::enable( const std::string& mode )
 {
-    return _jsPlayer->player().video().track_count();
+    libvlc_video_set_deinterlace( _jsPlayer->player().get_mp(), mode.c_str() );
 }
 
-int JsVlcVideo::track()
+void JsVlcDeinterlace::disable()
 {
-    return _jsPlayer->player().video().get_track();
-}
-
-void JsVlcVideo::setTrack( unsigned track )
-{
-    _jsPlayer->player().video().set_track( track );
-}
-
-v8::Local<v8::Object> JsVlcVideo::deinterlace()
-{
-    return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsDeinterlace );
+    libvlc_video_set_deinterlace( _jsPlayer->player().get_mp(), nullptr );
 }
