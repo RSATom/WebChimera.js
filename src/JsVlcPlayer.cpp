@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "NodeTools.h"
+#include "JsSubtitles.h"
 #include "JsVlcPlaylist.h"
 
 const char* JsVlcPlayer::callbackNames[] =
@@ -309,6 +310,7 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
 {
     node::AtExit( [] ( void* ) { JsVlcPlayer::closeAll(); } );
 
+    JsSubtitles::initJsApi();
     JsVlcPlaylist::initJsApi();
 
     using namespace v8;
@@ -380,6 +382,7 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     SET_RO_PROPERTY( instanceTemplate, "playing", &JsVlcPlayer::playing );
     SET_RO_PROPERTY( instanceTemplate, "length", &JsVlcPlayer::length );
     SET_RO_PROPERTY( instanceTemplate, "state", &JsVlcPlayer::state );
+    SET_RO_PROPERTY( instanceTemplate, "subtitles", &JsVlcPlayer::subtitles );
     SET_RO_PROPERTY( instanceTemplate, "playlist", &JsVlcPlayer::playlist );
 
     SET_RO_PROPERTY( instanceTemplate, "videoFrame", &JsVlcPlayer::getVideoFrame );
@@ -458,6 +461,7 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
                                          "EventEmitter",
                                          v8::String::kInternalizedString ) ) )->NewInstance() );
 
+    _jsSubtitles = JsSubtitles::create( *this );
     _jsPlaylist = JsVlcPlaylist::create( *this );
 
     uv_loop_t* loop = uv_default_loop();
@@ -1016,6 +1020,11 @@ void JsVlcPlayer::stop()
 void JsVlcPlayer::toggleMute()
 {
     player().audio().toggle_mute();
+}
+
+v8::Local<v8::Object> JsVlcPlayer::subtitles()
+{
+    return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsSubtitles );
 }
 
 v8::Local<v8::Object> JsVlcPlayer::playlist()

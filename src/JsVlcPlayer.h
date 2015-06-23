@@ -92,6 +92,7 @@ public:
     void stop();
     void toggleMute();
 
+    v8::Local<v8::Object> subtitles();
     v8::Local<v8::Object> playlist();
 
     vlc::player& player()
@@ -161,6 +162,7 @@ private:
     v8::UniquePersistent<v8::Function> _jsCallbacks[CB_Max];
     v8::UniquePersistent<v8::Object> _jsEventEmitter;
 
+    v8::UniquePersistent<v8::Object> _jsSubtitles;
     v8::UniquePersistent<v8::Object> _jsPlaylist;
 
     uv_timer_t _errorTimer;
