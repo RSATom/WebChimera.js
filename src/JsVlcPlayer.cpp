@@ -4,6 +4,7 @@
 
 #include "NodeTools.h"
 #include "JsVlcAudio.h"
+#include "JsVlcVideo.h"
 #include "JsVlcSubtitles.h"
 #include "JsVlcPlaylist.h"
 
@@ -312,6 +313,7 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     node::AtExit( [] ( void* ) { JsVlcPlayer::closeAll(); } );
 
     JsVlcAudio::initJsApi();
+    JsVlcVideo::initJsApi();
     JsVlcSubtitles::initJsApi();
     JsVlcPlaylist::initJsApi();
 
@@ -386,6 +388,7 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     SET_RO_PROPERTY( instanceTemplate, "state", &JsVlcPlayer::state );
 
     SET_RO_PROPERTY( instanceTemplate, "audio", &JsVlcPlayer::audio );
+    SET_RO_PROPERTY( instanceTemplate, "video", &JsVlcPlayer::video );
     SET_RO_PROPERTY( instanceTemplate, "subtitles", &JsVlcPlayer::subtitles );
     SET_RO_PROPERTY( instanceTemplate, "playlist", &JsVlcPlayer::playlist );
 
@@ -466,6 +469,7 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
                                          v8::String::kInternalizedString ) ) )->NewInstance() );
 
     _jsAudio = JsVlcAudio::create( *this );
+    _jsVideo = JsVlcVideo::create( *this );
     _jsSubtitles = JsVlcSubtitles::create( *this );
     _jsPlaylist = JsVlcPlaylist::create( *this );
 
@@ -1030,6 +1034,11 @@ void JsVlcPlayer::toggleMute()
 v8::Local<v8::Object> JsVlcPlayer::audio()
 {
     return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsAudio );
+}
+
+v8::Local<v8::Object> JsVlcPlayer::video()
+{
+    return v8::Local<v8::Object>::New( v8::Isolate::GetCurrent(), _jsVideo );
 }
 
 v8::Local<v8::Object> JsVlcPlayer::subtitles()
