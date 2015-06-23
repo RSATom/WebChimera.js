@@ -1,11 +1,11 @@
-#include "JsSubtitles.h"
+#include "JsVlcSubtitles.h"
 
 #include "NodeTools.h"
 #include "JsVlcPlayer.h"
 
-v8::Persistent<v8::Function> JsSubtitles::_jsConstructor;
+v8::Persistent<v8::Function> JsVlcSubtitles::_jsConstructor;
 
-void JsSubtitles::initJsApi()
+void JsVlcSubtitles::initJsApi()
 {
     using namespace v8;
 
@@ -14,24 +14,24 @@ void JsSubtitles::initJsApi()
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
     constructorTemplate->SetClassName(
-        String::NewFromUtf8( isolate, "VlcPlaylistItems", v8::String::kInternalizedString ) );
+        String::NewFromUtf8( isolate, "VlcSubtitles", v8::String::kInternalizedString ) );
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
     instanceTemplate->SetInternalFieldCount( 1 );
 
-    SET_RO_INDEXED_PROPERTY( instanceTemplate, &JsSubtitles::description );
+    SET_RO_INDEXED_PROPERTY( instanceTemplate, &JsVlcSubtitles::description );
 
-    SET_RO_PROPERTY( instanceTemplate, "count", &JsSubtitles::count );
+    SET_RO_PROPERTY( instanceTemplate, "count", &JsVlcSubtitles::count );
 
-    SET_RW_PROPERTY( instanceTemplate, "track", &JsSubtitles::track, &JsSubtitles::setTrack );
-    SET_RW_PROPERTY( instanceTemplate, "delay", &JsSubtitles::delay, &JsSubtitles::setDelay );
+    SET_RW_PROPERTY( instanceTemplate, "track", &JsVlcSubtitles::track, &JsVlcSubtitles::setTrack );
+    SET_RW_PROPERTY( instanceTemplate, "delay", &JsVlcSubtitles::delay, &JsVlcSubtitles::setDelay );
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
 }
 
-v8::UniquePersistent<v8::Object> JsSubtitles::create( JsVlcPlayer& player )
+v8::UniquePersistent<v8::Object> JsVlcSubtitles::create( JsVlcPlayer& player )
 {
     using namespace v8;
 
@@ -46,7 +46,7 @@ v8::UniquePersistent<v8::Object> JsSubtitles::create( JsVlcPlayer& player )
     return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
 }
 
-void JsSubtitles::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
+void JsVlcSubtitles::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     using namespace v8;
 
@@ -58,7 +58,7 @@ void JsSubtitles::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
         JsVlcPlayer* jsPlayer =
             ObjectWrap::Unwrap<JsVlcPlayer>( Handle<Object>::Cast( args[0] ) );
         if( jsPlayer ) {
-            JsSubtitles* jsPlaylist = new JsSubtitles( thisObject, jsPlayer );
+            JsVlcSubtitles* jsPlaylist = new JsVlcSubtitles( thisObject, jsPlayer );
             args.GetReturnValue().Set( thisObject );
         }
     } else {
@@ -70,13 +70,13 @@ void JsSubtitles::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     }
 }
 
-JsSubtitles::JsSubtitles( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
+JsVlcSubtitles::JsVlcSubtitles( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
     _jsPlayer( jsPlayer )
 {
     Wrap( thisObject );
 }
 
-std::string JsSubtitles::description( uint32_t index )
+std::string JsVlcSubtitles::description( uint32_t index )
 {
     vlc_player& p = _jsPlayer->player();
 
@@ -103,27 +103,27 @@ std::string JsSubtitles::description( uint32_t index )
     return name;
 }
 
-unsigned JsSubtitles::count()
+unsigned JsVlcSubtitles::count()
 {
     return _jsPlayer->player().subtitles().track_count();
 }
 
-int JsSubtitles::track()
+int JsVlcSubtitles::track()
 {
     return _jsPlayer->player().subtitles().get_track();
 }
 
-void JsSubtitles::setTrack( int track )
+void JsVlcSubtitles::setTrack( int track )
 {
     return _jsPlayer->player().subtitles().set_track( track );
 }
 
-int JsSubtitles::delay()
+int JsVlcSubtitles::delay()
 {
     return static_cast<int>( _jsPlayer->player().subtitles().get_delay() );
 }
 
-void JsSubtitles::setDelay( int delay )
+void JsVlcSubtitles::setDelay( int delay )
 {
     _jsPlayer->player().subtitles().set_delay( delay );
 }

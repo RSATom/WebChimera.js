@@ -7,7 +7,7 @@
 
 class JsVlcPlayer; //#include "JsVlcPlayer.h"
 
-class JsSubtitles :
+class JsVlcSubtitles :
     public node::ObjectWrap
 {
 public:
@@ -26,7 +26,7 @@ public:
 
 private:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsSubtitles( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
+    JsVlcSubtitles( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;

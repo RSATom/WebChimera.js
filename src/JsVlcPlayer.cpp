@@ -3,8 +3,8 @@
 #include <string.h>
 
 #include "NodeTools.h"
-#include "JsAudio.h"
-#include "JsSubtitles.h"
+#include "JsVlcAudio.h"
+#include "JsVlcSubtitles.h"
 #include "JsVlcPlaylist.h"
 
 const char* JsVlcPlayer::callbackNames[] =
@@ -311,8 +311,8 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
 {
     node::AtExit( [] ( void* ) { JsVlcPlayer::closeAll(); } );
 
-    JsAudio::initJsApi();
-    JsSubtitles::initJsApi();
+    JsVlcAudio::initJsApi();
+    JsVlcSubtitles::initJsApi();
     JsVlcPlaylist::initJsApi();
 
     using namespace v8;
@@ -465,8 +465,8 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
                                          "EventEmitter",
                                          v8::String::kInternalizedString ) ) )->NewInstance() );
 
-    _jsAudio = JsAudio::create( *this );
-    _jsSubtitles = JsSubtitles::create( *this );
+    _jsAudio = JsVlcAudio::create( *this );
+    _jsSubtitles = JsVlcSubtitles::create( *this );
     _jsPlaylist = JsVlcPlaylist::create( *this );
 
     uv_loop_t* loop = uv_default_loop();

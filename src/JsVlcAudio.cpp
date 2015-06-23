@@ -1,11 +1,11 @@
-#include "JsAudio.h"
+#include "JsVlcAudio.h"
 
 #include "NodeTools.h"
 #include "JsVlcPlayer.h"
 
-v8::Persistent<v8::Function> JsAudio::_jsConstructor;
+v8::Persistent<v8::Function> JsVlcAudio::_jsConstructor;
 
-void JsAudio::initJsApi()
+void JsVlcAudio::initJsApi()
 {
     using namespace v8;
 
@@ -14,7 +14,7 @@ void JsAudio::initJsApi()
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New( isolate, jsCreate );
     constructorTemplate->SetClassName(
-        String::NewFromUtf8( isolate, "VlcPlaylistItems", v8::String::kInternalizedString ) );
+        String::NewFromUtf8( isolate, "VlcVideo", v8::String::kInternalizedString ) );
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
@@ -39,23 +39,23 @@ void JsAudio::initJsApi()
                         Integer::New( isolate, libvlc_AudioChannel_Dolbys ),
                         static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
-    SET_RO_INDEXED_PROPERTY( instanceTemplate, &JsAudio::description );
+    SET_RO_INDEXED_PROPERTY( instanceTemplate, &JsVlcAudio::description );
 
-    SET_RO_PROPERTY( instanceTemplate, "count", &JsAudio::count );
+    SET_RO_PROPERTY( instanceTemplate, "count", &JsVlcAudio::count );
 
-    SET_RW_PROPERTY( instanceTemplate, "track", &JsAudio::track, &JsAudio::setTrack );
-    SET_RW_PROPERTY( instanceTemplate, "mute", &JsAudio::muted, &JsAudio::setMuted );
-    SET_RW_PROPERTY( instanceTemplate, "volume", &JsAudio::volume, &JsAudio::setVolume );
-    SET_RW_PROPERTY( instanceTemplate, "channel", &JsAudio::channel, &JsAudio::setChannel );
-    SET_RW_PROPERTY( instanceTemplate, "delay", &JsAudio::delay, &JsAudio::setDelay );
+    SET_RW_PROPERTY( instanceTemplate, "track", &JsVlcAudio::track, &JsVlcAudio::setTrack );
+    SET_RW_PROPERTY( instanceTemplate, "mute", &JsVlcAudio::muted, &JsVlcAudio::setMuted );
+    SET_RW_PROPERTY( instanceTemplate, "volume", &JsVlcAudio::volume, &JsVlcAudio::setVolume );
+    SET_RW_PROPERTY( instanceTemplate, "channel", &JsVlcAudio::channel, &JsVlcAudio::setChannel );
+    SET_RW_PROPERTY( instanceTemplate, "delay", &JsVlcAudio::delay, &JsVlcAudio::setDelay );
 
-    SET_METHOD( constructorTemplate, "toggleMute", &JsAudio::toggleMute );
+    SET_METHOD( constructorTemplate, "toggleMute", &JsVlcAudio::toggleMute );
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
 }
 
-v8::UniquePersistent<v8::Object> JsAudio::create( JsVlcPlayer& player )
+v8::UniquePersistent<v8::Object> JsVlcAudio::create( JsVlcPlayer& player )
 {
     using namespace v8;
 
@@ -70,7 +70,7 @@ v8::UniquePersistent<v8::Object> JsAudio::create( JsVlcPlayer& player )
     return { isolate, constructor->NewInstance( sizeof( argv ) / sizeof( argv[0] ), argv ) };
 }
 
-void JsAudio::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
+void JsVlcAudio::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
 {
     using namespace v8;
 
@@ -82,7 +82,7 @@ void JsAudio::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
         JsVlcPlayer* jsPlayer =
             ObjectWrap::Unwrap<JsVlcPlayer>( Handle<Object>::Cast( args[0] ) );
         if( jsPlayer ) {
-            JsAudio* jsPlaylist = new JsAudio( thisObject, jsPlayer );
+            JsVlcAudio* jsPlaylist = new JsVlcAudio( thisObject, jsPlayer );
             args.GetReturnValue().Set( thisObject );
         }
     } else {
@@ -94,13 +94,13 @@ void JsAudio::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
     }
 }
 
-JsAudio::JsAudio( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
+JsVlcAudio::JsVlcAudio( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer ) :
     _jsPlayer( jsPlayer )
 {
     Wrap( thisObject );
 }
 
-std::string JsAudio::description( uint32_t index )
+std::string JsVlcAudio::description( uint32_t index )
 {
     vlc_player& p = _jsPlayer->player();
 
@@ -127,62 +127,62 @@ std::string JsAudio::description( uint32_t index )
     return name;
 }
 
-unsigned JsAudio::count()
+unsigned JsVlcAudio::count()
 {
     return _jsPlayer->player().audio().track_count();
 }
 
-int JsAudio::track()
+int JsVlcAudio::track()
 {
     return _jsPlayer->player().audio().get_track();
 }
 
-void JsAudio::setTrack( int track )
+void JsVlcAudio::setTrack( int track )
 {
     _jsPlayer->player().audio().set_track( track );
 }
 
-int JsAudio::delay()
+int JsVlcAudio::delay()
 {
     return static_cast<int>( _jsPlayer->player().audio().get_delay() );
 }
 
-void JsAudio::setDelay( int delay )
+void JsVlcAudio::setDelay( int delay )
 {
     _jsPlayer->player().audio().set_delay( delay );
 }
 
-bool JsAudio::muted()
+bool JsVlcAudio::muted()
 {
     return _jsPlayer->player().audio().is_muted();
 }
 
-void JsAudio::setMuted( bool muted )
+void JsVlcAudio::setMuted( bool muted )
 {
     _jsPlayer->player().audio().set_mute( muted );
 }
 
-unsigned JsAudio::volume()
+unsigned JsVlcAudio::volume()
 {
     return _jsPlayer->player().audio().get_volume();
 }
 
-void JsAudio::setVolume( unsigned volume )
+void JsVlcAudio::setVolume( unsigned volume )
 {
     _jsPlayer->player().audio().set_volume( volume );
 }
 
-int JsAudio::channel()
+int JsVlcAudio::channel()
 {
     return _jsPlayer->player().audio().get_channel();
 }
 
-void JsAudio::setChannel( unsigned channel )
+void JsVlcAudio::setChannel( unsigned channel )
 {
     _jsPlayer->player().audio().set_channel( (libvlc_audio_output_channel_t) channel );
 }
 
-void JsAudio::toggleMute()
+void JsVlcAudio::toggleMute()
 {
     _jsPlayer->player().audio().toggle_mute();
 }
