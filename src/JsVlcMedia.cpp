@@ -36,7 +36,7 @@ void JsVlcMedia::initJsApi()
     SET_RO_PROPERTY( instanceTemplate, "trackID", &JsVlcMedia::trackID );
     SET_RO_PROPERTY( instanceTemplate, "mrl", &JsVlcMedia::mrl );
 
-    SET_RW_PROPERTY( instanceTemplate, "setting",
+    SET_RW_PROPERTY( instanceTemplate, "title",
                      &JsVlcMedia::title,
                      &JsVlcMedia::setTitle );
     SET_RW_PROPERTY( instanceTemplate, "setting",
