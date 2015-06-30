@@ -31,5 +31,4 @@ private:
     JsVlcPlayer* _jsPlayer;
 
     v8::UniquePersistent<v8::Object> _jsDeinterlace;
-
 };

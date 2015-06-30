@@ -37,8 +37,10 @@ public:
 
     std::string title();
     void setTitle( const std::string& );
+
     std::string setting();
     void setSetting( const std::string& );
+
     bool disabled();
     void setDisabled( bool );
 
