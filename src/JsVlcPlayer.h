@@ -92,6 +92,7 @@ public:
     void stop();
     void toggleMute();
 
+    v8::Local<v8::Object> input();
     v8::Local<v8::Object> audio();
     v8::Local<v8::Object> video();
     v8::Local<v8::Object> subtitles();
@@ -164,6 +165,7 @@ private:
     v8::UniquePersistent<v8::Function> _jsCallbacks[CB_Max];
     v8::UniquePersistent<v8::Object> _jsEventEmitter;
 
+    v8::UniquePersistent<v8::Object> _jsInput;
     v8::UniquePersistent<v8::Object> _jsAudio;
     v8::UniquePersistent<v8::Object> _jsVideo;
     v8::UniquePersistent<v8::Object> _jsSubtitles;
