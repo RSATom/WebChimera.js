@@ -109,7 +109,6 @@ private:
     struct AsyncData;
     struct RV32FrameSetupData;
     struct I420FrameSetupData;
-    struct FrameUpdated;
     struct CallbackData;
     struct LibvlcEvent;
 
@@ -156,6 +155,8 @@ private:
     uv_async_t _async;
     std::mutex _asyncDataGuard;
     std::deque<std::unique_ptr<AsyncData> > _asyncData;
+
+    uv_async_t _asyncframeReady;
 
     PixelFormat _pixelFormat;
     std::shared_ptr<VideoFrame> _videoFrame;

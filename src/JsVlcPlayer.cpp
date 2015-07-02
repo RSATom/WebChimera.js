@@ -148,17 +148,6 @@ void JsVlcPlayer::I420FrameSetupData::process( JsVlcPlayer* jsPlayer )
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-struct JsVlcPlayer::FrameUpdated : public JsVlcPlayer::AsyncData
-{
-    void process( JsVlcPlayer* ) override;
-};
-
-void JsVlcPlayer::FrameUpdated::process( JsVlcPlayer* jsPlayer )
-{
-    jsPlayer->frameUpdated();
-}
-
-///////////////////////////////////////////////////////////////////////////////
 struct JsVlcPlayer::CallbackData : public JsVlcPlayer::AsyncData
 {
     CallbackData( JsVlcPlayer::Callbacks_e callback ) :
@@ -487,6 +476,14 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
     );
     _async.data = this;
 
+    uv_async_init( loop, &_asyncframeReady,
+        [] ( uv_async_t* handle ) {
+            if( handle->data )
+                reinterpret_cast<JsVlcPlayer*>( handle->data )->frameUpdated();
+        }
+    );
+    _asyncframeReady.data = this;
+
     uv_timer_init( loop, &_errorTimer );
     _errorTimer.data = this;
 }
@@ -535,6 +532,9 @@ void JsVlcPlayer::close()
 
     _async.data = nullptr;
     uv_close( reinterpret_cast<uv_handle_t*>( &_async ), 0 );
+
+    _asyncframeReady.data = nullptr;
+    uv_close( reinterpret_cast<uv_handle_t*>( &_asyncframeReady ), 0 );
 
     _errorTimer.data = nullptr;
     uv_timer_stop( &_errorTimer );
@@ -595,10 +595,8 @@ void JsVlcPlayer::video_unlock_cb( void* /*picture*/, void *const * /*planes*/ )
 
 void JsVlcPlayer::video_display_cb( void* /*picture*/ )
 {
-    _asyncDataGuard.lock();
-    _asyncData.emplace_back( new FrameUpdated() );
-    _asyncDataGuard.unlock();
-    uv_async_send( &_async );
+    //this call will be ignored if previous was not handled yet
+    uv_async_send( &_asyncframeReady );
 }
 
 void JsVlcPlayer::media_player_event( const libvlc_event_t* e )
