@@ -738,8 +738,6 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
 
     Callbacks_e callback = CB_Max;
 
-    std::initializer_list<v8::Local<v8::Value> > list;
-
     switch( libvlcEvent.type ) {
         case libvlc_MediaPlayerMediaChanged:
             callback = CB_MediaPlayerMediaChanged;
@@ -751,8 +749,9 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
             callback = CB_MediaPlayerOpening;
             break;
         case libvlc_MediaPlayerBuffering: {
-            callback = CB_MediaPlayerBuffering;
-            list = { Number::New( isolate, libvlcEvent.u.media_player_buffering.new_cache ) };
+            callCallback( CB_MediaPlayerBuffering,
+                          { Number::New( isolate,
+                                         libvlcEvent.u.media_player_buffering.new_cache ) } );
             break;
         }
         case libvlc_MediaPlayerPlaying:
@@ -788,38 +787,40 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
                 }, 1000, 0 );
             break;
         case libvlc_MediaPlayerTimeChanged: {
-            callback = CB_MediaPlayerTimeChanged;
             const double new_time =
                 static_cast<double>( libvlcEvent.u.media_player_time_changed.new_time );
-            list = { Number::New( isolate, static_cast<double>( new_time ) ) };
+            callCallback( CB_MediaPlayerTimeChanged,
+                          { Number::New( isolate, static_cast<double>( new_time ) ) } );
             break;
         }
         case libvlc_MediaPlayerPositionChanged: {
-            callback = CB_MediaPlayerPositionChanged;
-            list = { Number::New( isolate, libvlcEvent.u.media_player_position_changed.new_position ) };
+            callCallback( CB_MediaPlayerPositionChanged,
+                          { Number::New( isolate,
+                                         libvlcEvent.u.media_player_position_changed.new_position ) } );
             break;
         }
         case libvlc_MediaPlayerSeekableChanged: {
-            callback = CB_MediaPlayerSeekableChanged;
-            list = { Boolean::New( isolate, libvlcEvent.u.media_player_seekable_changed.new_seekable != 0 ) };
+            callCallback( CB_MediaPlayerSeekableChanged,
+                          { Boolean::New( isolate,
+                            libvlcEvent.u.media_player_seekable_changed.new_seekable != 0 ) } );
             break;
         }
         case libvlc_MediaPlayerPausableChanged: {
-            callback = CB_MediaPlayerPausableChanged;
-            list = { Boolean::New( isolate, libvlcEvent.u.media_player_pausable_changed.new_pausable != 0 ) };
+            callCallback( CB_MediaPlayerPausableChanged,
+                          { Boolean::New( isolate,
+                                          libvlcEvent.u.media_player_pausable_changed.new_pausable != 0 ) } );
             break;
         }
         case libvlc_MediaPlayerLengthChanged: {
-            callback = CB_MediaPlayerLengthChanged;
             const double new_length =
                 static_cast<double>( libvlcEvent.u.media_player_length_changed.new_length );
-            list = { Number::New( isolate, new_length ) };
+            callCallback( CB_MediaPlayerLengthChanged, { Number::New( isolate, new_length ) } );
             break;
         }
     }
 
     if( callback != CB_Max ) {
-        callCallback( callback, list );
+        callCallback( callback );
     }
 }
 
