@@ -21,12 +21,14 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [VLC Player](http://www.videolan.org/vlc/download-windows.html) in your PATH environment variable;
 * [CMake](http://www.cmake.org/);
 * [io.js](https://iojs.org) or [Node.js](https://nodejs.org);
+* [NW.js ia32](http://nwjs.io/) or [Electron ia32](http://electron.atom.io/);
 
 ### Mac OS X
 * [Apple XCode](https://developer.apple.com/xcode/);
 * [VLC Player](http://www.videolan.org/vlc/download-macosx.html);
 * [CMake](http://www.cmake.org/);
 * [io.js](https://iojs.org) or [Node.js](https://nodejs.org);
+* [NW.js](http://nwjs.io/) or [Electron](http://electron.atom.io/);
 
 ### Linux
 for apt based distros:
