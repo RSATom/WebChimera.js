@@ -445,6 +445,8 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
 
     initLibvlc( vlcOpts );
 
+    _player.set_playback_mode( vlc::mode_normal );
+
     if( _libvlc && _player.open( _libvlc ) ) {
         _player.register_callback( this );
         vlc::basic_vmem_wrapper::open( &_player.basic_player() );
