@@ -26,11 +26,11 @@ v8::Local<v8::Function> RequireFunc()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    Local<Object> global = isolate->GetCurrentContext()->Global();
+    Local<Object> module = Local<Object>::New( Isolate::GetCurrent(), ::thisModule );
 
     return
         Local<Function>::Cast(
-            global->Get(
+            module->Get(
                 String::NewFromUtf8( isolate,
                                      "require",
                                      String::kInternalizedString ) ) );
