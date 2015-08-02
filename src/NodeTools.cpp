@@ -1,5 +1,7 @@
 #include "NodeTools.h"
 
+v8::Persistent<v8::Object> thisModule;
+
 template<>
 std::vector<std::string> FromJsValue<std::vector<std::string> >( const v8::Local<v8::Value>& value )
 {
