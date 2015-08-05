@@ -1,0 +1,12 @@
+language: objective-c
+
+env:
+  - VLC_VER=2.2.1
+
+before_install:
+  - git submodule update --init --recursive
+  - wget http://get.videolan.org/vlc/$VLC_VER/macosx/vlc-$VLC_VER.dmg
+  - hdiutil mount vlc-$VLC_VER.dmg
+  - sudo cp -R "/Volumes/vlc-$VLC_VER/VLC.app" /Applications
+
+script: npm install
