@@ -1,0 +1,7 @@
+os: Visual Studio 2015
+
+install:
+  - git submodule update --init --recursive
+  - npm install
+
+build: off
