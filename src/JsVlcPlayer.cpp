@@ -588,8 +588,7 @@ void JsVlcPlayer::callCallback( Callbacks_e callback,
         Local<Function> callbackFunc =
             Local<Function>::New( isolate, _jsCallbacks[callback] );
 
-        callbackFunc->Call( isolate->GetCurrentContext()->Global(),
-                            argList.size() - 1, argList.data() + 1 );
+        callbackFunc->Call( handle(), argList.size() - 1, argList.data() + 1 );
     }
 
     Local<Object> eventEmitter = getEventEmitter();
