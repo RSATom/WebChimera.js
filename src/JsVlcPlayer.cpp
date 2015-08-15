@@ -345,6 +345,11 @@ void JsVlcPlayer::handleAsync()
         _asyncDataGuard.unlock();
         for( const auto& i: tmpData ) {
             i->process( this );
+
+            //events queue could be very long...
+            if( VlcVideoOutput::isFrameReady() ) {
+                onFrameReady();
+            }
         }
     }
 }
