@@ -12,9 +12,11 @@
 #include <libvlc_wrapper/vlc_player.h>
 #include <libvlc_wrapper/vlc_vmem.h>
 
+#include "VlcVideoOutput.h"
+
 class JsVlcPlayer :
     public node::ObjectWrap,
-    private vlc::basic_vmem_wrapper,
+    private VlcVideoOutput,
     private vlc::media_player_events_callback
 {
     enum Callbacks_e {
@@ -44,11 +46,6 @@ class JsVlcPlayer :
     };
 
     static const char* callbackNames[CB_Max];
-
-    enum class PixelFormat {
-        RV32 = 0,
-        I420,
-    };
 
 public:
     static void initJsApi( const v8::Handle<v8::Object>& exports );
@@ -107,23 +104,14 @@ private:
     ~JsVlcPlayer();
 
     struct AsyncData;
-    struct RV32FrameSetupData;
-    struct I420FrameSetupData;
     struct CallbackData;
     struct LibvlcEvent;
-
-    class VideoFrame;
-    class RV32VideoFrame;
-    class I420VideoFrame;
 
     static void closeAll();
     void initLibvlc( const v8::Local<v8::Array>& vlcOpts );
     void close();
 
     void handleAsync();
-    void setupBuffer( const RV32FrameSetupData& );
-    void setupBuffer( const I420FrameSetupData& );
-    void frameUpdated();
 
     //could come from worker thread
     void media_player_event( const libvlc_event_t* );
@@ -135,15 +123,11 @@ private:
     void callCallback( Callbacks_e callback,
                        std::initializer_list<v8::Local<v8::Value> > list = std::initializer_list<v8::Local<v8::Value> >() );
 
-private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* lines ) override;
-    void video_cleanup_cb() override;
-
-    void* video_lock_cb( void** planes ) override;
-    void video_unlock_cb( void* picture, void *const * planes ) override;
-    void video_display_cb( void* picture ) override;
+protected:
+    void* onFrameSetup( const RV32VideoFrame& ) override;
+    void* onFrameSetup( const I420VideoFrame& ) override;
+    void onFrameReady() override;
+    void onFrameCleanup() override;
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;
@@ -155,11 +139,6 @@ private:
     uv_async_t _async;
     std::mutex _asyncDataGuard;
     std::deque<std::unique_ptr<AsyncData> > _asyncData;
-
-    uv_async_t _asyncframeReady;
-
-    PixelFormat _pixelFormat;
-    std::shared_ptr<VideoFrame> _videoFrame;
 
     v8::UniquePersistent<v8::Value> _jsFrameBuffer;
 
