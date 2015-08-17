@@ -63,9 +63,12 @@ private:
     void video_unlock_cb( void* picture, void *const * planes ) override;
     void video_display_cb( void* picture ) override;
 
+    void notifyFrameReady();
+
 private:
-    PixelFormat _pixelFormat;
-    std::shared_ptr<VideoFrame> _videoFrame;
+    PixelFormat _pixelFormat; //FIXME! maybe we need std::atomic here
+    std::shared_ptr<VideoFrame> _videoFrame; //should be accessed only from decode thread
+    std::shared_ptr<VideoFrame> _currentVideoFrame; //should be accessed only from gui thread
 
     uv_async_t _async;
     std::mutex _guard;
@@ -79,6 +82,7 @@ class VlcVideoOutput::VideoFrame
 {
 protected:
     VideoFrame();
+    virtual ~VideoFrame();
 
 public:
     unsigned width() const
@@ -90,6 +94,8 @@ public:
 
     void setFrameBuffer( void* frameBuffer )
         { _frameBuffer = frameBuffer; }
+    bool bufferFilled() const
+        { return _bufferFilled; }
 
 protected:
     virtual unsigned video_format_cb( char* chroma,
@@ -97,11 +103,12 @@ protected:
                                       unsigned* pitches, unsigned* lines ) = 0;
 
     virtual void* video_lock_cb( void** planes ) = 0;
-    virtual void video_unlock_cb( void* picture, void *const * planes ) {};
-    //should return true if frame could be displayed
-    virtual bool video_display_cb( void* /*picture*/ )
-        { return _tmpFrameBuffer.empty(); }
+    virtual void video_unlock_cb( void* picture, void *const * planes );
+
     void video_cleanup_cb();
+
+    void forceBlack();
+    virtual void fillBlack() = 0;
 
     friend VlcVideoOutput;
 
@@ -111,12 +118,17 @@ protected:
     unsigned _size;
 
     void* _frameBuffer; //FIXME! maybe we need std::atomic here
-    std::vector<char> _tmpFrameBuffer;
+    bool _bufferFilled;
+    bool _forceBlack;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 class VlcVideoOutput::RV32VideoFrame : public VideoFrame
 {
+public:
+    void fillBlack() override;
+
+private:
     unsigned video_format_cb( char* chroma,
                               unsigned* width, unsigned* height,
                               unsigned* pitches, unsigned* line ) override;
@@ -133,6 +145,8 @@ public:
         { return _uPlaneOffset; }
     unsigned vPlaneOffset() const
         { return _vPlaneOffset; }
+
+    void fillBlack() override;
 
 private:
     unsigned video_format_cb( char* chroma,
