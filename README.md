@@ -13,7 +13,8 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [JavaScript API](https://github.com/RSATom/WebChimera.js/wiki/JavaScript-API)
 
 ## Known Projects using WebChimera.js
-* [Stremio](http://blog.strem.io/post/121596387436/alpha-of-stremio-2-0)
+* [Stremio](http://www.strem.io/)
+* [Powder Player](http://powder.media/)
 
 ## Build Prerequisites
 ### Windows
@@ -38,9 +39,9 @@ for apt based distros:
 ### Windows
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `build_nwjs.cmd` or `build_electron.cmd`
+* `build_nwjs.cmd` or `build_electron.cmd` or `build_node.cmd` or `build_iojs.cmd`
 
 ### Mac OS X & Linux
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `./build_nwjs.sh` or `./build_electron.sh`
+* `./build_nwjs.sh` or `./build_electron.sh` or `./build_node.sh` or `./build_iojs.sh`
