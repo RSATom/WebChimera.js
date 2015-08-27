@@ -9,6 +9,14 @@
 #include "JsVlcSubtitles.h"
 #include "JsVlcPlaylist.h"
 
+#if V8_MAJOR_VERSION > 4 || \
+    ( V8_MAJOR_VERSION == 4 && V8_MINOR_VERSION > 4 ) || \
+    ( V8_MAJOR_VERSION == 4 && V8_MINOR_VERSION == 4 && V8_BUILD_NUMBER >= 26 )
+
+#define USE_ARRAY_BUFFER 1
+
+#endif
+
 const char* JsVlcPlayer::callbackNames[] =
 {
     "FrameSetup",
@@ -375,8 +383,8 @@ void* JsVlcPlayer::onFrameSetup( const RV32VideoFrame& videoFrame )
                                  v8::String::kInternalizedString ) );
     Local<Value> argv[] =
         { Integer::NewFromUnsigned( isolate, videoFrame.size() ) };
-    Local<Object> jsArray =
-        Handle<Function>::Cast( abv )->NewInstance( 1, argv );
+    Local<Uint8Array> jsArray =
+        Handle<Uint8Array>::Cast( Handle<Function>::Cast( abv )->NewInstance( 1, argv ) );
 
     Local<Integer> jsWidth = Integer::New( isolate, videoFrame.width() );
     Local<Integer> jsHeight = Integer::New( isolate, videoFrame.height() );
@@ -393,7 +401,11 @@ void* JsVlcPlayer::onFrameSetup( const RV32VideoFrame& videoFrame )
 
     callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat, jsArray } );
 
+#ifdef USE_ARRAY_BUFFER
+    return jsArray->Buffer()->GetContents().Data();
+#else
     return jsArray->GetIndexedPropertiesExternalArrayData();
+#endif
 }
 
 void* JsVlcPlayer::onFrameSetup( const I420VideoFrame& videoFrame )
@@ -420,8 +432,8 @@ void* JsVlcPlayer::onFrameSetup( const I420VideoFrame& videoFrame )
                                  v8::String::kInternalizedString ) );
     Local<Value> argv[] =
         { Integer::NewFromUnsigned( isolate, videoFrame.size() ) };
-    Local<Object> jsArray =
-        Handle<Function>::Cast( abv )->NewInstance( 1, argv );
+    Local<Uint8Array> jsArray =
+        Handle<Uint8Array>::Cast( Handle<Function>::Cast( abv )->NewInstance( 1, argv ) );
 
     Local<Integer> jsWidth = Integer::New( isolate, videoFrame.width() );
     Local<Integer> jsHeight = Integer::New( isolate, videoFrame.height() );
@@ -447,7 +459,11 @@ void* JsVlcPlayer::onFrameSetup( const I420VideoFrame& videoFrame )
 
     callCallback( CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat, jsArray } );
 
+#ifdef USE_ARRAY_BUFFER
+    return jsArray->Buffer()->GetContents().Data();
+#else
     return jsArray->GetIndexedPropertiesExternalArrayData();
+#endif
 }
 
 void JsVlcPlayer::onFrameReady()
