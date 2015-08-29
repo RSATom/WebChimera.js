@@ -1,7 +1,13 @@
 language: objective-c
 
 env:
-  - VLC_VER=2.2.1
+  global:
+    - VLC_VER=2.2.1
+
+  matrix:
+    - npm_config_wcjs_runtime="electron" npm_config_wcjs_runtime_version="0.31.1"
+    - npm_config_wcjs_runtime="electron" npm_config_wcjs_runtime_version="0.30.6"
+    - npm_config_wcjs_runtime="nw" npm_config_wcjs_runtime_version="0.12.3"
 
 before_install:
   - git submodule update --init --recursive
