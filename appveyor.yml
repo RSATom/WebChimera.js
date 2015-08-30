@@ -8,6 +8,9 @@ environment:
     - npm_config_wcjs_runtime: "electron"
       npm_config_wcjs_runtime_version: "0.30.6"
 
+    - npm_config_wcjs_runtime: "electron"
+      npm_config_wcjs_runtime_version: "0.29.2"
+
     - npm_config_wcjs_runtime: "nw"
       npm_config_wcjs_runtime_version: "0.12.3"
 
