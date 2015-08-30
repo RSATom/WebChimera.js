@@ -14,5 +14,22 @@ before_install:
   - wget http://get.videolan.org/vlc/$VLC_VER/macosx/vlc-$VLC_VER.dmg
   - hdiutil mount vlc-$VLC_VER.dmg
   - sudo cp -R "/Volumes/vlc-$VLC_VER/VLC.app" /Applications
+  - export WCJS_ARCHIVE=WebChimera.js_${npm_config_wcjs_runtime}_${npm_config_wcjs_runtime_version}_mac.zip
 
 script: npm install
+
+before_deploy: zip ./build/Release/${WCJS_ARCHIVE} ./build/Release/WebChimera.js.node
+
+deploy:
+  provider: releases
+
+  api_key:
+    secure: DQ9xU0jLcOsLE3CnkKW0jdapMzqe1uzOLZFOyXL7b0nMuF7wRp/yY6jUc5nYJ1dBXbNWd4TpRKLPOjk/1Wp5q5/ePdTMwFlJbtgLBwk5CUATc8Ur25Q6ST0gGzuDE4xXaqy/l/kOnunj4Tmbm/bOL9U120WULKsfpT2K8M4Owm4Uhp4BZHwjmtHwypakSXqph5MIJ96pZ/rN2zSJsrdLiDu4LHpOfEW6MM/vAp1RMVrSvkfg9mFroDSrA9MIES1V4n6xMyU+oqQrHXlVO5lcoKZ5Z+5dukowPY89waec2f3oCCiPDSWqN4RxINRxkR7dWf6HJwO/UecYLL/kAHDcDWLboT3DW02/bn61eyTY9z1xloJrt6FopOWZSLemGGwLKvor9/O88w9CovB8SueaKjruNa2FulZ/EN74f3PfbIVKGAEusrNoGNP0jR4vxWJz2jnUdPGRhqCMy3SrKTC45NwMEGWDxOzRJvrg/AXElwJfRFyonixmA92znAYRe9mk0Xa42WaK151BL/cpq7pzIRcnLM3OJS7pdKW64z14q8YuOikbrZzsGpSKNctb88GaL0O5w9NSjjAy0tBdwBxFkn0FHz0SQAjeAthaPKrH0JzPnSVKiwmU8BJBGSDCOf8npHOtZzknaPIaNvnSlk4yFTTm1UjMePtfo5Z3XKX4H4g=
+
+  file: ./build/Release/$WCJS_ARCHIVE
+
+  skip_cleanup: true
+
+  on:
+    repo: RSATom/WebChimera.js
+    tags: true
