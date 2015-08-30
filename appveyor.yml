@@ -14,5 +14,25 @@ environment:
 install:
   - git submodule update --init --recursive
   - npm install
+  - set WCJS_ARCHIVE=WebChimera.js_%npm_config_wcjs_runtime%_%npm_config_wcjs_runtime_version%_win.zip
+  - 7z a .\build\Release\%WCJS_ARCHIVE% .\build\Release\WebChimera.js.node
 
 build: off
+
+artifacts:
+  - path: build\Release\$(WCJS_ARCHIVE)
+
+deploy:
+  provider: GitHub
+
+  auth_token:
+    secure: lJrMMwqwi1suASlU+raxug971oNJjkn8kNu+7sXpDIxSH1wGIKcjeME1TIO1Pu3a
+
+  tag: $(APPVEYOR_REPO_TAG_NAME)
+
+  release: WebChimera $(APPVEYOR_REPO_TAG_NAME)
+
+  artifact: build\Release\$(WCJS_ARCHIVE)
+
+  on:
+    appveyor_repo_tag: true
