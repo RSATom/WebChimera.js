@@ -43,7 +43,7 @@ unsigned VlcVideoOutput::RV32VideoFrame::video_format_cb( char* chroma,
     _width = *width;
     _height = *height;
 
-    memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
+    std::memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
     *pitches = *width * vlc::DEF_PIXEL_BYTES;
     *lines = *height;
 
@@ -62,7 +62,7 @@ void* VlcVideoOutput::RV32VideoFrame::video_lock_cb( void** planes )
 void VlcVideoOutput::RV32VideoFrame::fillBlack()
 {
     if( _frameBuffer ) {
-        memset( _frameBuffer, 0, size() );
+        std::memset( _frameBuffer, 0, size() );
     }
 }
 
@@ -81,7 +81,7 @@ unsigned VlcVideoOutput::I420VideoFrame::video_format_cb( char* chroma,
 
     const char CHROMA[] = "I420";
 
-    memcpy( chroma, CHROMA, sizeof( CHROMA ) - 1 );
+    std::memcpy( chroma, CHROMA, sizeof( CHROMA ) - 1 );
 
     const unsigned evenWidth = *width + ( *width & 1 );
     const unsigned evenHeight = *height + ( *height & 1 );
@@ -124,9 +124,9 @@ void VlcVideoOutput::I420VideoFrame::fillBlack()
 {
     if( _frameBuffer ) {
         char* buffer = static_cast<char*>( _frameBuffer );
-        memset( buffer, 0x0, _uPlaneOffset );
-        memset( buffer + _uPlaneOffset, 0x80, _vPlaneOffset - _uPlaneOffset );
-        memset( buffer + _vPlaneOffset, 0x80, size() - _vPlaneOffset );
+        std::memset( buffer, 0x0, _uPlaneOffset );
+        std::memset( buffer + _uPlaneOffset, 0x80, _vPlaneOffset - _uPlaneOffset );
+        std::memset( buffer + _vPlaneOffset, 0x80, size() - _vPlaneOffset );
     }
 }
 

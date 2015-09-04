@@ -4,10 +4,9 @@
 #include <memory>
 #include <mutex>
 #include <atomic>
-
 #include <uv.h>
-
 #include <libvlc_wrapper/vlc_vmem.h>
+#include <cstring>
 
 ///////////////////////////////////////////////////////////////////////////////
 class VlcVideoOutput :
