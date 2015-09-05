@@ -3,3 +3,6 @@ build/
 build_*/
 Release/
 CMakeLists.txt.user
+
+deps/VLC*.app/
+deps/vlc-*.dmg

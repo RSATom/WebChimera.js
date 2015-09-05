@@ -1,4 +1,6 @@
-language: objective-c
+os:
+  - osx
+  - linux
 
 env:
   global:
@@ -10,12 +12,19 @@ env:
     - npm_config_wcjs_runtime="electron" npm_config_wcjs_runtime_version="0.29.2"
     - npm_config_wcjs_runtime="nw" npm_config_wcjs_runtime_version="0.12.3"
 
+addons:
+  apt:
+    sources:
+    - kalakris-cmake
+
+    packages:
+    - cmake
+    - libvlc-dev
+
 before_install:
   - git submodule update --init --recursive
-  - wget http://get.videolan.org/vlc/$VLC_VER/macosx/vlc-$VLC_VER.dmg
-  - hdiutil mount vlc-$VLC_VER.dmg
-  - sudo cp -R "/Volumes/vlc-$VLC_VER/VLC.app" /Applications
-  - export WCJS_ARCHIVE=WebChimera.js_${npm_config_wcjs_runtime}_${npm_config_wcjs_runtime_version}_mac.zip
+  - ./travis_before_install.sh
+  - export WCJS_ARCHIVE=WebChimera.js_${npm_config_wcjs_runtime}_${npm_config_wcjs_runtime_version}_${TRAVIS_OS_NAME}.zip
 
 script: npm install
 
