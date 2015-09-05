@@ -3,7 +3,7 @@ os: Visual Studio 2015
 environment:
   matrix:
     - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.31.1"
+      npm_config_wcjs_runtime_version: "0.31.2"
       npm_config_wcjs_arch: "ia32"
 
     - npm_config_wcjs_runtime: "electron"
