@@ -17,6 +17,9 @@
 
 #endif
 
+#undef min
+#undef max
+
 const char* JsVlcPlayer::callbackNames[] =
 {
     "FrameSetup",
@@ -298,15 +301,18 @@ void JsVlcPlayer::initLibvlc( const v8::Local<v8::Array>& vlcOpts )
         std::deque<std::string> opts;
         std::vector<const char*> libvlcOpts;
 
-        for( unsigned i = 0 ; i < vlcOpts->Length(); ++i ) {
-            String::Utf8Value opt( vlcOpts->Get(i)->ToString() );
+        for( unsigned i = 0;
+             i < std::min<unsigned>( vlcOpts->Length(), std::numeric_limits<short>::max() );
+             ++i )
+        {
+            String::Utf8Value opt( vlcOpts->Get( i )->ToString() );
             if( opt.length() ) {
                 auto it = opts.emplace( opts.end(), *opt );
                 libvlcOpts.push_back( it->c_str() );
             }
         }
 
-        _libvlc = libvlc_new( libvlcOpts.size(), libvlcOpts.data() );
+        _libvlc = libvlc_new( static_cast<int>( libvlcOpts.size() ), libvlcOpts.data() );
     }
 }
 
@@ -612,7 +618,7 @@ void JsVlcPlayer::callCallback( Callbacks_e callback,
         Local<Function> callbackFunc =
             Local<Function>::New( isolate, _jsCallbacks[callback] );
 
-        callbackFunc->Call( handle(), argList.size() - 1, argList.data() + 1 );
+        callbackFunc->Call( handle(), static_cast<int>( argList.size() - 1), argList.data() + 1 );
     }
 
     Local<Object> eventEmitter = getEventEmitter();
@@ -621,7 +627,7 @@ void JsVlcPlayer::callCallback( Callbacks_e callback,
             eventEmitter->Get(
                 String::NewFromUtf8( isolate, "emit", v8::String::kInternalizedString ) ) );
 
-    emitFunction->Call( eventEmitter, argList.size(), argList.data() );
+    emitFunction->Call( eventEmitter, static_cast<int>( argList.size() ), argList.data() );
 }
 
 void JsVlcPlayer::jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args )

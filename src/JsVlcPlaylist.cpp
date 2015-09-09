@@ -162,7 +162,8 @@ int JsVlcPlaylist::addWithOptions( const std::string& mrl,
 
     return _jsPlayer->player().add_media( mrl.c_str(),
                                           0, nullptr,
-                                          trusted_opts.size(), trusted_opts.data() );
+                                          static_cast<unsigned>( trusted_opts.size() ),
+                                          trusted_opts.data() );
 }
 
 void JsVlcPlaylist::play()
