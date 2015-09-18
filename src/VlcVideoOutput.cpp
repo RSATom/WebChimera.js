@@ -7,8 +7,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 VlcVideoOutput::VideoFrame::VideoFrame() :
     _width( 0 ), _height( 0 ), _size( 0 ),
-    _frameBuffer( nullptr ), _bufferFilled( false ),
-    _forceBlack( false )
+    _frameBuffer( nullptr ), _bufferFilled( false )
 {
 }
 
@@ -19,23 +18,9 @@ VlcVideoOutput::VideoFrame::~VideoFrame()
 void VlcVideoOutput::VideoFrame::video_unlock_cb( void* picture, void *const * planes )
 {
     if( planes[0] && planes[0] == _frameBuffer ) {
-        if( _forceBlack )
-            fillBlack();
-
         _bufferFilled = true;
     }
 };
-
-void VlcVideoOutput::VideoFrame::video_cleanup_cb()
-{
-    forceBlack();
-}
-
-void VlcVideoOutput::VideoFrame::forceBlack()
-{
-    _forceBlack = true;
-    fillBlack();
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 unsigned VlcVideoOutput::RV32VideoFrame::video_format_cb( char* chroma,
@@ -273,10 +258,6 @@ unsigned VlcVideoOutput::video_format_cb( char* chroma,
 
 void VlcVideoOutput::video_cleanup_cb()
 {
-    _videoFrame->video_cleanup_cb();
-
-    notifyFrameReady();
-
     _guard.lock();
     _videoEvents.emplace_back( new FrameCleanupEvent );
     _guard.unlock();

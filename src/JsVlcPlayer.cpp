@@ -590,8 +590,6 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
 
 void JsVlcPlayer::currentItemEndReached()
 {
-    //have to stop to force video_cleanup_cb and as consequence fill frame with black
-    player().stop();
 
     if( vlc::mode_single != player().get_playback_mode() )
         player().next();

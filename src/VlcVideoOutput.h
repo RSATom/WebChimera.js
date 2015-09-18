@@ -105,9 +105,6 @@ protected:
     virtual void* video_lock_cb( void** planes ) = 0;
     virtual void video_unlock_cb( void* picture, void *const * planes );
 
-    void video_cleanup_cb();
-
-    void forceBlack();
     virtual void fillBlack() = 0;
 
     friend VlcVideoOutput;
@@ -119,7 +116,6 @@ protected:
 
     void* _frameBuffer; //FIXME! maybe we need std::atomic here
     bool _bufferFilled;
-    bool _forceBlack;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
