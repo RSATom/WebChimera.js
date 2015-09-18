@@ -590,6 +590,7 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
 
 void JsVlcPlayer::currentItemEndReached()
 {
+    _ignoreFrameReady = true;
 
     if( vlc::mode_single != player().get_playback_mode() )
         player().next();
