@@ -104,6 +104,7 @@ protected:
 
     virtual void* video_lock_cb( void** planes ) = 0;
     virtual void video_unlock_cb( void* picture, void *const * planes );
+    void video_cleanup_cb();
 
     virtual void fillBlack() = 0;
 
@@ -114,6 +115,7 @@ protected:
     unsigned _height;
     unsigned _size;
 
+    std::vector<char> _tmpFrameBuffer;
     void* _frameBuffer; //FIXME! maybe we need std::atomic here
     bool _bufferFilled;
 };
