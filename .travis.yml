@@ -27,7 +27,7 @@ before_install:
 
 script: npm install
 
-before_deploy: zip ./build/Release/${WCJS_ARCHIVE} ./build/Release/WebChimera.js.node
+before_deploy: zip -j ./build/Release/${WCJS_ARCHIVE} ./build/Release/WebChimera.js.node
 
 deploy:
   provider: releases
