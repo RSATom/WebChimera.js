@@ -229,7 +229,8 @@ void VlcVideoOutput::FrameCleanupEvent::process( VlcVideoOutput* videoOutput )
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-VlcVideoOutput::VlcVideoOutput()
+VlcVideoOutput::VlcVideoOutput() :
+    _pixelFormat( PixelFormat::I420 )
 {
     uv_loop_t* loop = uv_default_loop();
 
