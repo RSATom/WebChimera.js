@@ -15,6 +15,12 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [Stremio](http://www.strem.io/)
 * [Powder Player](http://powder.media/)
 
+## Prebuilt
+To install WebChimera.js without building it, use [wcjs-prebuilt](http://github.com/Ivshti/wcjs-prebuilt) which supports Electron and NW.js environments.
+```bash
+npm install wcjs-prebuilt
+```
+
 ## Build Prerequisites
 ### Windows
 * [Visual Studio Community 2013](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
