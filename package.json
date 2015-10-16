@@ -8,7 +8,8 @@
     "vlc",
     "libvlc",
     "video",
-    "player"
+    "player",
+    "wcjs"
   ],
   "repository": {
     "type": "git",
