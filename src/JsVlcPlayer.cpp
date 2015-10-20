@@ -240,7 +240,7 @@ void JsVlcPlayer::closeAll()
 }
 
 JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts ) :
-    _libvlc( nullptr ), _ignoreFrameReady( false )
+    _libvlc( nullptr )
 {
     Wrap( thisObject );
 
@@ -474,9 +474,6 @@ void* JsVlcPlayer::onFrameSetup( const I420VideoFrame& videoFrame )
 
 void JsVlcPlayer::onFrameReady()
 {
-    if( _ignoreFrameReady )
-        return;
-
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
@@ -517,11 +514,9 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
             break;
         }
         case libvlc_MediaPlayerPlaying:
-            _ignoreFrameReady = false;
             callback = CB_MediaPlayerPlaying;
             break;
         case libvlc_MediaPlayerPaused:
-            _ignoreFrameReady = true;
             callback = CB_MediaPlayerPaused;
             break;
         case libvlc_MediaPlayerStopped:
@@ -590,8 +585,6 @@ void JsVlcPlayer::handleLibvlcEvent( const libvlc_event_t& libvlcEvent )
 
 void JsVlcPlayer::currentItemEndReached()
 {
-    _ignoreFrameReady = true;
-
     if( vlc::mode_single != player().get_playback_mode() )
         player().next();
 }
