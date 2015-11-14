@@ -23,7 +23,7 @@ file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     package.json
     )
 
-include_directories( ${CMAKE_JS_INC} deps )
+include_directories( ${CMAKE_JS_INC} "${CMAKE_CURRENT_SOURCE_DIR}/deps" "${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper/libvlc-sdk/include" )
 add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper )
 
 add_library( ${PROJECT_NAME} SHARED ${SOURCE_FILES} )
