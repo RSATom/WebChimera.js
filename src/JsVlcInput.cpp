@@ -88,12 +88,12 @@ JsVlcInput::JsVlcInput( v8::Local<v8::Object>& thisObject, JsVlcPlayer* jsPlayer
 
 double JsVlcInput::length()
 {
-    return static_cast<double>( _jsPlayer->player().get_length() );
+    return static_cast<double>( _jsPlayer->player().playback().get_length() );
 }
 
 double JsVlcInput::fps()
 {
-    return _jsPlayer->player().get_fps();
+    return _jsPlayer->player().playback().get_fps();
 }
 
 unsigned JsVlcInput::state()
@@ -103,31 +103,31 @@ unsigned JsVlcInput::state()
 
 double JsVlcInput::position()
 {
-    return _jsPlayer->player().get_position();
+    return _jsPlayer->player().playback().get_position();
 }
 
 void JsVlcInput::setPosition( double position )
 {
-    _jsPlayer->player().set_position( static_cast<float>( position ) );
+    _jsPlayer->player().playback().set_position( static_cast<float>( position ) );
 }
 
 double JsVlcInput::time()
 {
-    return static_cast<double>( _jsPlayer->player().get_time() );
+    return static_cast<double>( _jsPlayer->player().playback().get_time() );
 }
 
 void JsVlcInput::setTime( double time )
 {
-    return _jsPlayer->player().set_time( static_cast<libvlc_time_t>( time ) );
+    return _jsPlayer->player().playback().set_time( static_cast<libvlc_time_t>( time ) );
 }
 
 double JsVlcInput::rate()
 {
-    return _jsPlayer->player().get_rate();
+    return _jsPlayer->player().playback().get_rate();
 }
 
 void JsVlcInput::setRate( double rate )
 {
-    _jsPlayer->player().set_rate( static_cast<float>( rate ) );
+    _jsPlayer->player().playback().set_rate( static_cast<float>( rate ) );
 }
 

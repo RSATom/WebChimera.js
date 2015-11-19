@@ -682,7 +682,7 @@ bool JsVlcPlayer::playing()
 
 double JsVlcPlayer::length()
 {
-    return static_cast<double>( player().get_length() );
+    return static_cast<double>( player().playback().get_length() );
 }
 
 unsigned JsVlcPlayer::state()
@@ -719,22 +719,22 @@ void JsVlcPlayer::setPixelFormat( unsigned format )
 
 double JsVlcPlayer::position()
 {
-    return player().get_position();
+    return player().playback().get_position();
 }
 
 void JsVlcPlayer::setPosition( double position )
 {
-    player().set_position( static_cast<float>( position ) );
+    player().playback().set_position( static_cast<float>( position ) );
 }
 
 double JsVlcPlayer::time()
 {
-    return static_cast<double>( player().get_time() );
+    return static_cast<double>( player().playback().get_time() );
 }
 
 void JsVlcPlayer::setTime( double time )
 {
-    player().set_time( static_cast<libvlc_time_t>( time ) );
+    player().playback().set_time( static_cast<libvlc_time_t>( time ) );
 }
 
 unsigned JsVlcPlayer::volume()
