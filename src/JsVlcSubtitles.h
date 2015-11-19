@@ -24,6 +24,8 @@ public:
     int delay();
     void setDelay( int );
 
+   bool load( const std::string& path );
+
 private:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
     JsVlcSubtitles( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );

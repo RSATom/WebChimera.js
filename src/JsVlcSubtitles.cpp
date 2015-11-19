@@ -27,6 +27,8 @@ void JsVlcSubtitles::initJsApi()
     SET_RW_PROPERTY( instanceTemplate, "track", &JsVlcSubtitles::track, &JsVlcSubtitles::setTrack );
     SET_RW_PROPERTY( instanceTemplate, "delay", &JsVlcSubtitles::delay, &JsVlcSubtitles::setDelay );
 
+    SET_METHOD( constructorTemplate, "load", &JsVlcSubtitles::load );
+
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
 }
@@ -126,4 +128,9 @@ int JsVlcSubtitles::delay()
 void JsVlcSubtitles::setDelay( int delay )
 {
     _jsPlayer->player().subtitles().set_delay( delay );
+}
+
+bool JsVlcSubtitles::load( const std::string& path )
+{
+    return _jsPlayer->player().subtitles().load( path );
 }
