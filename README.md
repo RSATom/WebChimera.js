@@ -50,3 +50,19 @@ for apt based distros:
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
 * `./build_nwjs.sh` or `./build_electron.sh` or `./build_node.sh` or `./build_iojs.sh`
+
+
+
+## Limitations 
+### Read this for Android / Raspberry Pi / performance issues
+
+WebChimera.js is a node.js module that utilizes libvlc and receives decoded frames in UIntArray objects. This is very efficient by itself. In pure node.js, we can receive the frames with absolutely **no overhead** because we directly give libvlc a memory address to decode in, to our pre-allocated raw memory of the UIntArray. 
+
+However, in a real-world scenario, we'd need something to draw the frames in. If we use WebChimera.js with Electron/NW.js (most common use case), then we can draw the frames in WebGL by sending them to the GPU through texImage2D. That sounds good, and there should be no issues.
+
+But Chromium uses a **multi-process architecture**, which means the GPU process and the renderer process, where our node.js context lies, are isolated between each other. When we call WebGL texImage2D, we transfer our frame buffer to the GPU process, which is a memcpy operation. Since texImage2D is a memcpy on it's own, we end up with two memcpy operations per frame. OK for a moderately powerful desktop machine, unless we render 4k or full HD 60fps, but obviously inefficient.
+
+Because of that limitation, we cannot even begin to think about anything ARM based, where we don't have that clock speed or memory bandwidth. That means that Raspberry Pi or Android is **out of the question** with that architecture.
+That doesn't mean WebChimera.js is incompatible with ARM by design - but **the combo of WebChimera.js + NW/Electron is terrible for mobile/embedded devices**.
+
+Is there a way we can do it? Perhaps, if we have a low-level node.js binding to a graphical layer and avoid Chromium runtime somehow. For now, however, using a different solution is advised. 
