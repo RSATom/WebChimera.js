@@ -14,12 +14,28 @@ libvlc binding for node.js/io.js/NW.js/Electron
 ## Known Projects using WebChimera.js
 * [Stremio](http://www.strem.io/)
 * [Powder Player](http://powder.media/)
+* [Butter](http://butterproject.org/)
 
-## Prebuilt
-To install WebChimera.js without building it, use [wcjs-prebuilt](http://github.com/Ivshti/wcjs-prebuilt) which supports Electron and NW.js environments.
-```bash
-npm install wcjs-prebuilt
-```
+## Prebuilt binaries
+* https://github.com/RSATom/WebChimera.js/releases
+
+### Using prebuilt on Windows
+* `npm install WebChimera.js --ignore-scripts`
+* download `WebChimera.js_*_win.zip` and extract to `webchimera.js\Release`
+* download `VLC` archive from [http://www.videolan.org](http://www.videolan.org/vlc/download-windows.html) and extract root folder contents from archive to `webchimera.js\Release`
+
+### Using prebuilt on Mac OS X
+* download `WebChimera.js_*_osx.tar.gz` and extract to `node_modules`
+
+### Using prebuilt on Linux
+* install `VLC` (for apt based distros: `sudo apt-get install vlc`)
+* `npm install WebChimera.js --ignore-scripts`
+* download `WebChimera.js_*_linux.zip` and extract to `webchimera.js\Release`
+
+## Automated prebuilt installation
+* [wcjs-prebuilt](https://www.npmjs.com/package/wcjs-prebuilt)
+* [grunt-download-wcjs](https://www.npmjs.com/package/grunt-download-wcjs)
+* [grunt-wcjs](https://www.npmjs.com/package/grunt-wcjs)
 
 ## Build Prerequisites
 ### Windows
