@@ -8,6 +8,7 @@ env:
     - ELECTRON_VER=0.34.3
     - ELECTRON_VER2=0.29.2
     - NW_VER=0.12.3
+    - BUILD_DIR=./build/Release
 
   matrix:
     - npm_config_wcjs_runtime=electron npm_config_wcjs_runtime_version=$ELECTRON_VER npm_config_wcjs_arch=x64
@@ -27,10 +28,13 @@ before_install:
   - git submodule update --init --recursive
   - ./travis_before_install.sh
   - export WCJS_ARCHIVE=WebChimera.js_${npm_config_wcjs_runtime}_${npm_config_wcjs_runtime_version}_${npm_config_wcjs_arch}_${TRAVIS_OS_NAME}.zip
+  - export WCJS_ARCHIVE_PATH=$BUILD_DIR/$WCJS_ARCHIVE
+  - export WCJS_FULL_ARCHIVE=WebChimera.js_${TRAVIS_TAG}_${npm_config_wcjs_runtime}_v${npm_config_wcjs_runtime_version}_VLC_v${VLC_VER}_${npm_config_wcjs_arch}_${TRAVIS_OS_NAME}.tar.gz
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then export WCJS_FULL_ARCHIVE_PATH=$BUILD_DIR/$WCJS_FULL_ARCHIVE; else export WCJS_FULL_ARCHIVE_PATH=$WCJS_ARCHIVE_PATH; fi
 
 script: npm install
 
-before_deploy: zip -j ./build/Release/${WCJS_ARCHIVE} ./build/Release/WebChimera.js.node
+before_deploy: ./travis_before_deploy.sh
 
 deploy:
   provider: releases
@@ -38,7 +42,9 @@ deploy:
   api_key:
     secure: DQ9xU0jLcOsLE3CnkKW0jdapMzqe1uzOLZFOyXL7b0nMuF7wRp/yY6jUc5nYJ1dBXbNWd4TpRKLPOjk/1Wp5q5/ePdTMwFlJbtgLBwk5CUATc8Ur25Q6ST0gGzuDE4xXaqy/l/kOnunj4Tmbm/bOL9U120WULKsfpT2K8M4Owm4Uhp4BZHwjmtHwypakSXqph5MIJ96pZ/rN2zSJsrdLiDu4LHpOfEW6MM/vAp1RMVrSvkfg9mFroDSrA9MIES1V4n6xMyU+oqQrHXlVO5lcoKZ5Z+5dukowPY89waec2f3oCCiPDSWqN4RxINRxkR7dWf6HJwO/UecYLL/kAHDcDWLboT3DW02/bn61eyTY9z1xloJrt6FopOWZSLemGGwLKvor9/O88w9CovB8SueaKjruNa2FulZ/EN74f3PfbIVKGAEusrNoGNP0jR4vxWJz2jnUdPGRhqCMy3SrKTC45NwMEGWDxOzRJvrg/AXElwJfRFyonixmA92znAYRe9mk0Xa42WaK151BL/cpq7pzIRcnLM3OJS7pdKW64z14q8YuOikbrZzsGpSKNctb88GaL0O5w9NSjjAy0tBdwBxFkn0FHz0SQAjeAthaPKrH0JzPnSVKiwmU8BJBGSDCOf8npHOtZzknaPIaNvnSlk4yFTTm1UjMePtfo5Z3XKX4H4g=
 
-  file: ./build/Release/$WCJS_ARCHIVE
+  file:
+    - $WCJS_ARCHIVE_PATH
+    - $WCJS_FULL_ARCHIVE_PATH
 
   skip_cleanup: true
 
