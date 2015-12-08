@@ -155,6 +155,13 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
                         Integer::New( isolate, libvlc_Error ),
                         static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
+    protoTemplate->Set( String::NewFromUtf8( isolate, "vlcVersion", v8::String::kInternalizedString ),
+                        String::NewFromUtf8( isolate, libvlc_get_version(), v8::String::kInternalizedString ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    protoTemplate->Set( String::NewFromUtf8( isolate, "vlcChangeset", v8::String::kInternalizedString ),
+                        String::NewFromUtf8( isolate, libvlc_get_changeset(), v8::String::kInternalizedString ),
+                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+
     SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameSetup", CB_FrameSetup );
     SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameReady", CB_FrameReady );
     SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameCleanup", CB_FrameCleanup );
@@ -204,8 +211,16 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
+
     exports->Set( String::NewFromUtf8( isolate, "VlcPlayer", v8::String::kInternalizedString ), constructor );
     exports->Set( String::NewFromUtf8( isolate, "createPlayer", v8::String::kInternalizedString ), constructor );
+
+    exports->ForceSet( String::NewFromUtf8( isolate, "vlcVersion", v8::String::kInternalizedString ),
+                       String::NewFromUtf8( isolate, libvlc_get_version(), v8::String::kInternalizedString ),
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
+    exports->ForceSet( String::NewFromUtf8( isolate, "vlcChangeset", v8::String::kInternalizedString ),
+                       String::NewFromUtf8( isolate, libvlc_get_changeset(), v8::String::kInternalizedString ),
+                       static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 }
 
 void JsVlcPlayer::jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args )
