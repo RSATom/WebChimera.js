@@ -155,11 +155,14 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
                         Integer::New( isolate, libvlc_Error ),
                         static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
+    Local<String> vlcVersion = String::NewFromUtf8( isolate, libvlc_get_version(), v8::String::kNormalString );
+    Local<String> vlcChangeset = String::NewFromUtf8( isolate, libvlc_get_changeset(), v8::String::kNormalString );
+
     protoTemplate->Set( String::NewFromUtf8( isolate, "vlcVersion", v8::String::kInternalizedString ),
-                        String::NewFromUtf8( isolate, libvlc_get_version(), v8::String::kInternalizedString ),
+                        vlcVersion,
                         static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
     protoTemplate->Set( String::NewFromUtf8( isolate, "vlcChangeset", v8::String::kInternalizedString ),
-                        String::NewFromUtf8( isolate, libvlc_get_changeset(), v8::String::kInternalizedString ),
+                        vlcChangeset,
                         static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 
     SET_CALLBACK_PROPERTY( instanceTemplate, "onFrameSetup", CB_FrameSetup );
@@ -216,10 +219,10 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     exports->Set( String::NewFromUtf8( isolate, "createPlayer", v8::String::kInternalizedString ), constructor );
 
     exports->ForceSet( String::NewFromUtf8( isolate, "vlcVersion", v8::String::kInternalizedString ),
-                       String::NewFromUtf8( isolate, libvlc_get_version(), v8::String::kInternalizedString ),
+                       vlcVersion,
                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
     exports->ForceSet( String::NewFromUtf8( isolate, "vlcChangeset", v8::String::kInternalizedString ),
-                       String::NewFromUtf8( isolate, libvlc_get_changeset(), v8::String::kInternalizedString ),
+                       vlcChangeset,
                        static_cast<v8::PropertyAttribute>( ReadOnly | DontDelete ) );
 }
 
