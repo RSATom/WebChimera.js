@@ -19,6 +19,21 @@ public:
     int track();
     void setTrack( unsigned );
 
+    double contrast();
+    void setContrast( double );
+
+    double brightness();
+    void setBrightness( double );
+
+    int hue();
+    void setHue( int );
+
+    double saturation();
+    void setSaturation( double );
+
+    double gamma();
+    void setGamma( double );
+
     v8::Local<v8::Object> deinterlace();
 
 private:

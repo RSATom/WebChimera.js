@@ -29,6 +29,12 @@ void JsVlcVideo::initJsApi()
 
     SET_RW_PROPERTY( instanceTemplate, "track", &JsVlcVideo::track, &JsVlcVideo::setTrack );
 
+    SET_RW_PROPERTY( instanceTemplate, "contrast", &JsVlcVideo::contrast, &JsVlcVideo::setContrast );
+    SET_RW_PROPERTY( instanceTemplate, "brightness", &JsVlcVideo::brightness, &JsVlcVideo::setBrightness );
+    SET_RW_PROPERTY( instanceTemplate, "hue", &JsVlcVideo::hue, &JsVlcVideo::setHue );
+    SET_RW_PROPERTY( instanceTemplate, "saturation", &JsVlcVideo::saturation, &JsVlcVideo::setSaturation );
+    SET_RW_PROPERTY( instanceTemplate, "gamma", &JsVlcVideo::gamma, &JsVlcVideo::setGamma );
+
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
 }
@@ -93,6 +99,56 @@ int JsVlcVideo::track()
 void JsVlcVideo::setTrack( unsigned track )
 {
     _jsPlayer->player().video().set_track( track );
+}
+
+double JsVlcVideo::contrast()
+{
+    return _jsPlayer->player().video().get_contrast();
+}
+
+void JsVlcVideo::setContrast( double contrast )
+{
+    _jsPlayer->player().video().set_contrast( static_cast<float>( contrast ) );
+}
+
+double JsVlcVideo::brightness()
+{
+    return _jsPlayer->player().video().get_brightness();
+}
+
+void JsVlcVideo::setBrightness( double brightness )
+{
+    _jsPlayer->player().video().set_brightness( static_cast<float>( brightness ) );
+}
+
+int JsVlcVideo::hue()
+{
+    return _jsPlayer->player().video().get_hue();
+}
+
+void JsVlcVideo::setHue( int hue )
+{
+    _jsPlayer->player().video().set_hue( hue );
+}
+
+double JsVlcVideo::saturation()
+{
+    return _jsPlayer->player().video().get_saturation();
+}
+
+void JsVlcVideo::setSaturation( double saturation )
+{
+    _jsPlayer->player().video().set_saturation( static_cast<float>( saturation ) );
+}
+
+double JsVlcVideo::gamma()
+{
+    return _jsPlayer->player().video().get_gamma();
+}
+
+void JsVlcVideo::setGamma( double gamma )
+{
+    _jsPlayer->player().video().set_gamma( static_cast<float>( gamma ) );
 }
 
 v8::Local<v8::Object> JsVlcVideo::deinterlace()
