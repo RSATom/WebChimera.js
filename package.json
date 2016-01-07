@@ -1,7 +1,7 @@
 {
   "name": "webchimera.js",
   "description": "libvlc binding for node.js/io.js/NW.js/Electron",
-  "version": "0.1.45",
+  "version": "0.1.46",
   "license" : "LGPL-2.1",
   "author": "Sergey Radionov <rsatom@gmail.com>",
   "keywords": [
@@ -9,7 +9,8 @@
     "libvlc",
     "video",
     "player",
-    "wcjs"
+    "wcjs",
+    "magics"
   ],
   "repository": {
     "type": "git",
