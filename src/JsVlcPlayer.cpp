@@ -42,7 +42,9 @@ const char* JsVlcPlayer::callbackNames[] =
     "PositionChanged",
     "SeekableChanged",
     "PausableChanged",
-    "LengthChanged"
+    "LengthChanged",
+
+    "LogMessage"
 };
 
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
@@ -84,6 +86,29 @@ struct JsVlcPlayer::LibvlcEvent : public JsVlcPlayer::AsyncData
 void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
 {
     jsPlayer->handleLibvlcEvent( libvlcEvent );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::LibvlcLogEvent : public JsVlcPlayer::AsyncData
+{
+    LibvlcLogEvent( const int level, const char *message, const char *format ) :
+        level( level ), message( message ), format( format ) {}
+
+    void process( JsVlcPlayer* );
+
+    const int level;
+    std::string message;
+    std::string format;
+};
+
+void JsVlcPlayer::LibvlcLogEvent::process( JsVlcPlayer* jsPlayer )
+{
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    v8::Local<v8::Integer> jsLevel = v8::Integer::New( isolate, level );
+    v8::Local<v8::String> jsMessage = v8::String::NewFromUtf8( isolate, message.c_str(), v8::String::kNormalString );
+    v8::Local<v8::String> jsFormat = v8::String::NewFromUtf8( isolate, format.c_str(), v8::String::kNormalString );
+
+    jsPlayer->callCallback( CB_LogMessage, { jsLevel, jsMessage, jsFormat } );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -187,6 +212,8 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     SET_CALLBACK_PROPERTY( instanceTemplate, "onPausableChanged", CB_MediaPlayerPausableChanged );
     SET_CALLBACK_PROPERTY( instanceTemplate, "onLengthChanged", CB_MediaPlayerLengthChanged );
 
+    SET_CALLBACK_PROPERTY( instanceTemplate, "onLogMessage", CB_LogMessage );
+
     SET_RO_PROPERTY( instanceTemplate, "playing", &JsVlcPlayer::playing );
     SET_RO_PROPERTY( instanceTemplate, "length", &JsVlcPlayer::length );
     SET_RO_PROPERTY( instanceTemplate, "state", &JsVlcPlayer::state );
@@ -260,7 +287,7 @@ void JsVlcPlayer::closeAll()
 }
 
 JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts ) :
-    _libvlc( nullptr )
+    _libvlc( nullptr ), _logMessageBuffer( 128 )
 {
     Wrap( thisObject );
 
@@ -334,6 +361,8 @@ void JsVlcPlayer::initLibvlc( const v8::Local<v8::Array>& vlcOpts )
 
         _libvlc = libvlc_new( static_cast<int>( libvlcOpts.size() ), libvlcOpts.data() );
     }
+
+    libvlc_log_set(_libvlc, JsVlcPlayer::log_event_wrapper, this);
 }
 
 JsVlcPlayer::~JsVlcPlayer()
@@ -367,6 +396,49 @@ void JsVlcPlayer::media_player_event( const libvlc_event_t* e )
     _asyncDataGuard.lock();
     _asyncData.emplace_back( new LibvlcEvent( *e ) );
     _asyncDataGuard.unlock();
+    uv_async_send( &_async );
+}
+
+void JsVlcPlayer::log_event_wrapper( void *data, int level, const libvlc_log_t *ctx, const char *fmt, va_list args )
+{
+    ((JsVlcPlayer *)data)->log_event(level, ctx, fmt, args);
+}
+
+void JsVlcPlayer::log_event( int level, const libvlc_log_t *ctx, const char *fmt, va_list args )
+{
+    // Make a copy of args in case we need to re-format.
+    va_list argsCopy;
+    va_copy( argsCopy, args );
+
+    _asyncDataGuard.lock();
+
+    // vsnprintf is a bit of a mess in Microsoft-land, older versions do not guarantee termination, don't risk it.
+    int ret = vsnprintf( &_logMessageBuffer[0], _logMessageBuffer.size() - 1, fmt, args );
+
+    // If the format string is bad, there is nothing we'll ever be able to do.
+    if (ret < 0) {
+        _asyncDataGuard.unlock();
+        va_end( argsCopy );
+
+        return;
+    }
+
+    // The buffer wasn't big enough.
+    if (ret >= (_logMessageBuffer.size() - 1)) {
+        // Grow the buffer to fit the longer message.
+        // This should probably use exponential growth, but it is not a very hot path.
+        _logMessageBuffer.resize( ret + 2 );
+
+        // Format the string against into the bigger buffer using the copy of args we kept.
+        ret = vsnprintf( &_logMessageBuffer[0], _logMessageBuffer.size() - 1, fmt, argsCopy );
+    }
+
+    _logMessageBuffer[ret] = '\0';
+    _asyncData.emplace_back( new LibvlcLogEvent( level, &_logMessageBuffer[0], fmt ) );
+
+    _asyncDataGuard.unlock();
+    va_end( argsCopy );
+
     uv_async_send( &_async );
 }
 

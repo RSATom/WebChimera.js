@@ -42,6 +42,8 @@ class JsVlcPlayer :
         CB_MediaPlayerPausableChanged,
         CB_MediaPlayerLengthChanged,
 
+        CB_LogMessage,
+
         CB_Max,
     };
 
@@ -108,6 +110,7 @@ private:
     struct AsyncData;
     struct CallbackData;
     struct LibvlcEvent;
+    struct LibvlcLogEvent;
 
     static void closeAll();
     void initLibvlc( const v8::Local<v8::Array>& vlcOpts );
@@ -116,6 +119,9 @@ private:
 
     //could come from worker thread
     void media_player_event( const libvlc_event_t* );
+
+    static void log_event_wrapper( void *, int, const libvlc_log_t *, const char *, va_list );
+    void log_event( int, const libvlc_log_t *, const char *, va_list );
 
     void handleLibvlcEvent( const libvlc_event_t& );
 
@@ -153,4 +159,6 @@ private:
     v8::UniquePersistent<v8::Object> _jsPlaylist;
 
     uv_timer_t _errorTimer;
+
+    std::vector<char> _logMessageBuffer;
 };
