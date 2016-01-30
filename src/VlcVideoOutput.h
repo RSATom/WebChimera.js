@@ -116,6 +116,7 @@ protected:
     unsigned _size;
 
     std::vector<char> _tmpFrameBuffer;
+    unsigned _tmpFrameBufferLocks;
     void* _frameBuffer; //FIXME! maybe we need std::atomic here
     bool _bufferFilled;
 };
@@ -151,6 +152,7 @@ private:
                               unsigned* width, unsigned* height,
                               unsigned* pitches, unsigned* lines ) override;
     void* video_lock_cb( void** planes ) override;
+    void video_unlock_cb( void* picture, void *const * planes ) override;
 
 private:
     unsigned _uPlaneOffset;

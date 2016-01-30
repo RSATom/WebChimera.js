@@ -6,7 +6,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 VlcVideoOutput::VideoFrame::VideoFrame() :
-    _width( 0 ), _height( 0 ), _size( 0 ),
+    _width( 0 ), _height( 0 ), _size( 0 ), _tmpFrameBufferLocks( 0 ),
     _frameBuffer( nullptr ), _bufferFilled( false )
 {
 }
@@ -116,15 +116,11 @@ unsigned VlcVideoOutput::I420VideoFrame::video_format_cb( char* chroma,
 void* VlcVideoOutput::I420VideoFrame::video_lock_cb( void** planes )
 {
     char* buffer;
-    if( _tmpFrameBuffer.empty() ) {
+    if( _frameBuffer ) {
         buffer = static_cast<char*>( _frameBuffer );
     } else {
-        if( _frameBuffer ) {
-            std::vector<char>().swap( _tmpFrameBuffer );
-            buffer = static_cast<char*>( _frameBuffer );
-        } else {
-            buffer = _tmpFrameBuffer.data();
-        }
+        buffer = _tmpFrameBuffer.data();
+        ++_tmpFrameBufferLocks;
     }
 
     planes[0] = buffer;
@@ -132,6 +128,18 @@ void* VlcVideoOutput::I420VideoFrame::video_lock_cb( void** planes )
     planes[2] = buffer + _vPlaneOffset;
 
     return nullptr;
+}
+
+void VlcVideoOutput::I420VideoFrame::video_unlock_cb( void * picture, void * const * planes )
+{
+    if( planes[0] == _tmpFrameBuffer.data() )
+        --_tmpFrameBufferLocks;
+
+    if( _frameBuffer && 0 == _tmpFrameBufferLocks ) {
+        std::vector<char>().swap( _tmpFrameBuffer );
+    }
+
+    VideoFrame::video_unlock_cb( picture, planes );
 }
 
 void VlcVideoOutput::I420VideoFrame::fillBlack()
