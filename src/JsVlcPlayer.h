@@ -98,6 +98,8 @@ public:
     vlc::player& player()
         { return _player; }
 
+    void close();
+
 private:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
     JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts );
@@ -109,7 +111,6 @@ private:
 
     static void closeAll();
     void initLibvlc( const v8::Local<v8::Array>& vlcOpts );
-    void close();
 
     void handleAsync();
 

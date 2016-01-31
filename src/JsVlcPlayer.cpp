@@ -212,6 +212,8 @@ void JsVlcPlayer::initJsApi( const v8::Handle<v8::Object>& exports )
     SET_METHOD( constructorTemplate, "stop",  &JsVlcPlayer::stop );
     SET_METHOD( constructorTemplate, "toggleMute", &JsVlcPlayer::toggleMute );
 
+    SET_METHOD( constructorTemplate, "close", &JsVlcPlayer::close );
+
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
 
