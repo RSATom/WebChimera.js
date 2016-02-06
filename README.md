@@ -4,12 +4,17 @@ libvlc binding for node.js/io.js/NW.js/Electron
 [![Join the chat at https://gitter.im/RSATom/WebChimera](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RSATom/WebChimera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Demos
+* [WebChimera.js Renderer Demo](https://github.com/RSATom/wcjs-ugly-demo)
 * [WebChimera.js Player - Single Video Demo](https://github.com/jaruba/node-vlcPlayer-demo)
 * [WebChimera.js Player - Multiscreen Demo](https://github.com/jaruba/node-vlc-multiscreen)
-* [WebChimera.js Renderer Demo](https://github.com/RSATom/wcjs-ugly-demo)
 
 ## Docs
 * [JavaScript API](https://github.com/RSATom/WebChimera.js/wiki/JavaScript-API)
+
+## Known issues and workarounds
+* [libvlc 2.2.1 is broken on OS X ](https://github.com/RSATom/WebChimera.js/wiki/Due-to-bug-libvlc-2.2.1-could-not-be-used-as-is-outside-VLC.app-on-Mac-OS-X)
+* [libvlc has compatibility issue with Electron v0.36.x on Windows](https://github.com/RSATom/WebChimera.js/wiki/Electron-v0.36.x-compatibility-issue-on-Windows)
+* [libvlc 3.0 has broken vmem plugin](https://github.com/RSATom/WebChimera.js/wiki/Vmem-plugin-in-VLC-3.0-is-broken)
 
 ## Known Projects using WebChimera.js
 * [Stremio](http://www.strem.io/)
@@ -31,11 +36,6 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * install `VLC` (for apt based distros: `sudo apt-get install vlc`)
 * `npm install WebChimera.js --ignore-scripts`
 * download `WebChimera.js_*_linux.zip` and extract to `webchimera.js\Release`
-
-## Automated prebuilt installation
-* [wcjs-prebuilt](https://www.npmjs.com/package/wcjs-prebuilt)
-* [grunt-download-wcjs](https://www.npmjs.com/package/grunt-download-wcjs)
-* [grunt-wcjs](https://www.npmjs.com/package/grunt-wcjs)
 
 ## Build Prerequisites
 ### Windows
