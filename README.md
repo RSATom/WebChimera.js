@@ -25,12 +25,10 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * https://github.com/RSATom/WebChimera.js/releases
 
 ### Using prebuilt on Windows
-* `npm install WebChimera.js --ignore-scripts`
-* download `WebChimera.js_*_win.zip` and extract to `webchimera.js\Release`
-* download `VLC` archive from [http://www.videolan.org](http://www.videolan.org/vlc/download-windows.html) and extract root folder contents from archive to `webchimera.js\Release`
+* download `WebChimera.js_*_win.zip` corresponding to your engine and extract to `node_modules`
 
 ### Using prebuilt on Mac OS X
-* download `WebChimera.js_*_osx.tar.gz` and extract to `node_modules`
+* download `WebChimera.js_*_osx.tar.gz` corresponding to your engine and extract to `node_modules`
 
 ### Using prebuilt on Linux
 * install `VLC` (for apt based distros: `sudo apt-get install vlc`)
