@@ -1,12 +1,14 @@
 os: Visual Studio 2015
 
 environment:
+  VLC_VER: 2.2.2
+
   matrix:
     - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.36.2"
+      npm_config_wcjs_runtime_version: "latest"
       npm_config_wcjs_arch: "ia32"
     - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.36.2"
+      npm_config_wcjs_runtime_version: "latest"
       npm_config_wcjs_arch: "x64"
 
     - npm_config_wcjs_runtime: "electron"
@@ -17,22 +19,27 @@ environment:
       npm_config_wcjs_arch: "x64"
 
     - npm_config_wcjs_runtime: "nw"
-      npm_config_wcjs_runtime_version: "0.12.3"
+      npm_config_wcjs_runtime_version: "latest"
       npm_config_wcjs_arch: "ia32"
     - npm_config_wcjs_runtime: "nw"
-      npm_config_wcjs_runtime_version: "0.12.3"
+      npm_config_wcjs_runtime_version: "latest"
       npm_config_wcjs_arch: "x64"
 
 install:
+  - if "%npm_config_wcjs_runtime%"=="electron" if "%npm_config_wcjs_runtime_version%"=="latest" for /f "delims=" %%a in ('npm show electron-prebuilt version') do set npm_config_wcjs_runtime_version=%%a
+  - if "%npm_config_wcjs_runtime%"=="nw" if "%npm_config_wcjs_runtime_version%"=="latest" for /f "delims=" %%a in ('npm show nw version') do set npm_config_wcjs_runtime_version=%%a
+  - set BUILD_DIR=%APPVEYOR_BUILD_FOLDER%\build\Release
+  - set WCJS_ARCHIVE=WebChimera.js_%npm_config_wcjs_runtime%_%npm_config_wcjs_runtime_version%_%npm_config_wcjs_arch%_win.zip
+  - set WCJS_FULL_ARCHIVE=WebChimera.js_%APPVEYOR_REPO_TAG_NAME%_%npm_config_wcjs_runtime%_v%npm_config_wcjs_runtime_version%_VLC_v%VLC_VER%_%npm_config_wcjs_arch%_win.zip
   - git submodule update --init --recursive
   - npm install
-  - set WCJS_ARCHIVE=WebChimera.js_%npm_config_wcjs_runtime%_%npm_config_wcjs_runtime_version%_%npm_config_wcjs_arch%_win.zip
-  - 7z a .\build\Release\%WCJS_ARCHIVE% .\build\Release\WebChimera.js.node
+  - 7z a %BUILD_DIR%\%WCJS_ARCHIVE% %BUILD_DIR%\WebChimera.js.node
+  - if "%APPVEYOR_REPO_TAG%"=="true" appveyor_prepare_full_archive.cmd
 
 build: off
 
 artifacts:
-  - path: build\Release\$(WCJS_ARCHIVE)
+  - path: build\Release\*_win.zip
 
 deploy:
   provider: GitHub
@@ -44,7 +51,7 @@ deploy:
 
   release: WebChimera $(APPVEYOR_REPO_TAG_NAME)
 
-  artifact: build\Release\$(WCJS_ARCHIVE)
+  artifact: build\Release\$(WCJS_ARCHIVE), build\Release\$(WCJS_FULL_ARCHIVE)
 
   on:
     appveyor_repo_tag: true
