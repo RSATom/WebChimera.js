@@ -405,9 +405,9 @@ void JsVlcPlayer::log_event_wrapper( void *data, int level, const libvlc_log_t *
 }
 
 #ifndef _MSC_VER
-inline int _vscprintf( const char *format, va_list argptr )
+inline int _vscprintf( const char* format, va_list argptr )
 {
-    return vsnprintf( nullptr, 0, fmt, args );
+    return vsnprintf( nullptr, 0, format, argptr );
 }
 #endif
 
