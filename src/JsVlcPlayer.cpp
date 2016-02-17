@@ -404,18 +404,25 @@ void JsVlcPlayer::log_event_wrapper( void *data, int level, const libvlc_log_t *
     ((JsVlcPlayer *)data)->log_event(level, ctx, fmt, args);
 }
 
+#ifndef _MSC_VER
+inline int _vscprintf( const char *format, va_list argptr )
+{
+    return vsnprintf( nullptr, 0, fmt, args );
+}
+#endif
+
 void JsVlcPlayer::log_event( int level, const libvlc_log_t *ctx, const char *fmt, va_list args )
 {
     va_list argsCopy;
     va_copy( argsCopy, args );
-    int ret = vsnprintf( nullptr, 0, fmt, argsCopy );
+    int messageSize = _vscprintf( fmt, argsCopy );
     va_end( argsCopy );
 
     // If the format string is bad, there is nothing we'll ever be able to do.
-    if( ret <= 0 )
+    if( messageSize <= 0 )
         return;
 
-    std::string message( ret + 1, '\0' );
+    std::string message( messageSize + 1, '\0' );
     // vsnprintf is a bit of a mess in Microsoft-land, older versions do not guarantee termination.
     vsnprintf( &message[0], message.size(), fmt, args );
     while( '\0' == message[message.size() - 1] )
