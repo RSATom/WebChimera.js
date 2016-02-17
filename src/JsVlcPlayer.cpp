@@ -415,11 +415,11 @@ void JsVlcPlayer::log_event( int level, const libvlc_log_t *ctx, const char *fmt
     if( ret <= 0 )
         return;
 
-    std::string message( ret, '\0' );
+    std::string message( ret + 1, '\0' );
     // vsnprintf is a bit of a mess in Microsoft-land, older versions do not guarantee termination.
     ret = vsnprintf( &message[0], message.size(), fmt, args );
-    if( '\0' == message[ret - 1] )
-        message.resize( ret - 1 );
+    while( '\0' == message[message.size() - 1] )
+        message.resize( message.size() - 1 );
 
     _asyncDataGuard.lock();
     _asyncData.emplace_back( new LibvlcLogEvent( level, message, fmt ) );
