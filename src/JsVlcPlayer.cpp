@@ -91,7 +91,7 @@ void JsVlcPlayer::LibvlcEvent::process( JsVlcPlayer* jsPlayer )
 ///////////////////////////////////////////////////////////////////////////////
 struct JsVlcPlayer::LibvlcLogEvent : public JsVlcPlayer::AsyncData
 {
-    LibvlcLogEvent( const int level, const char *message, const char *format ) :
+    LibvlcLogEvent( int level, const std::string& message, const std::string& format ) :
         level( level ), message( message ), format( format ) {}
 
     void process( JsVlcPlayer* );
@@ -287,7 +287,7 @@ void JsVlcPlayer::closeAll()
 }
 
 JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts ) :
-    _libvlc( nullptr ), _logMessageBuffer( 128 )
+    _libvlc( nullptr )
 {
     Wrap( thisObject );
 
@@ -406,38 +406,24 @@ void JsVlcPlayer::log_event_wrapper( void *data, int level, const libvlc_log_t *
 
 void JsVlcPlayer::log_event( int level, const libvlc_log_t *ctx, const char *fmt, va_list args )
 {
-    // Make a copy of args in case we need to re-format.
     va_list argsCopy;
     va_copy( argsCopy, args );
-
-    _asyncDataGuard.lock();
-
-    // vsnprintf is a bit of a mess in Microsoft-land, older versions do not guarantee termination, don't risk it.
-    int ret = vsnprintf( &_logMessageBuffer[0], _logMessageBuffer.size() - 1, fmt, args );
+    int ret = vsnprintf( nullptr, 0, fmt, argsCopy );
+    va_end( argsCopy );
 
     // If the format string is bad, there is nothing we'll ever be able to do.
-    if (ret < 0) {
-        _asyncDataGuard.unlock();
-        va_end( argsCopy );
-
+    if( ret <= 0 )
         return;
-    }
 
-    // The buffer wasn't big enough.
-    if (ret >= (_logMessageBuffer.size() - 1)) {
-        // Grow the buffer to fit the longer message.
-        // This should probably use exponential growth, but it is not a very hot path.
-        _logMessageBuffer.resize( ret + 2 );
+    std::string message( ret, '\0' );
+    // vsnprintf is a bit of a mess in Microsoft-land, older versions do not guarantee termination.
+    ret = vsnprintf( &message[0], message.size(), fmt, args );
+    if( '\0' == message[ret - 1] )
+        message.resize( ret - 1 );
 
-        // Format the string against into the bigger buffer using the copy of args we kept.
-        ret = vsnprintf( &_logMessageBuffer[0], _logMessageBuffer.size() - 1, fmt, argsCopy );
-    }
-
-    _logMessageBuffer[ret] = '\0';
-    _asyncData.emplace_back( new LibvlcLogEvent( level, &_logMessageBuffer[0], fmt ) );
-
+    _asyncDataGuard.lock();
+    _asyncData.emplace_back( new LibvlcLogEvent( level, message, fmt ) );
     _asyncDataGuard.unlock();
-    va_end( argsCopy );
 
     uv_async_send( &_async );
 }
