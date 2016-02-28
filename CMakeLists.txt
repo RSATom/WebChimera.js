@@ -26,9 +26,20 @@ file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 include_directories( ${CMAKE_JS_INC} deps )
 add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper )
 
+include_directories( ${CMAKE_JS_INC} deps/vmem2/include )
+if( MSVC AND CMAKE_SIZEOF_VOID_P EQUAL 8 )
+    find_library( VMEM2_LIBRARY NAMES vmem2.x64
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/deps/vmem2/lib"
+        )
+else()
+    find_library( VMEM2_LIBRARY NAMES vmem2
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/deps/vmem2/lib"
+        )
+endif()
+
 add_library( ${PROJECT_NAME} SHARED ${SOURCE_FILES} )
 set_target_properties( ${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node" )
-target_link_libraries( ${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper )
+target_link_libraries( ${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper ${VMEM2_LIBRARY} )
 
 #get_cmake_property( _variableNames VARIABLES )
 #foreach( _variableName ${_variableNames} )

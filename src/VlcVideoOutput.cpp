@@ -29,43 +29,34 @@ void VlcVideoOutput::VideoFrame::setFrameBuffer( void* frameBuffer )
     _waiter.notify_one();
 }
 
-void VlcVideoOutput::VideoFrame::video_unlock_cb( void* picture, void *const * planes )
-{
-};
-
-void VlcVideoOutput::VideoFrame::video_cleanup_cb()
-{
-}
-
 ///////////////////////////////////////////////////////////////////////////////
-unsigned VlcVideoOutput::RV32VideoFrame::video_format_cb( char* chroma,
-                                                          unsigned* width, unsigned* height,
-                                                          unsigned* pitches, unsigned* lines )
+bool VlcVideoOutput::RV32VideoFrame::setup( vmem2_video_format_t* format )
 {
-    _width = *width;
-    _height = *height;
+    format->chroma = RV32_FOURCC;
+    format->plane_count = 1;
 
-    memcpy( chroma, vlc::DEF_CHROMA, sizeof( vlc::DEF_CHROMA ) - 1 );
-    *pitches = *width * vlc::DEF_PIXEL_BYTES;
-    *lines = *height;
+    _width = format->visible_width;
+    _height = format->visible_height;
 
-    _size = *pitches * *lines;
+    format->pitches[0] = _width * 4;
+    format->lines[0] = _height;
 
-    return 1;
+    _size = format->pitches[0] * format->lines[0];
+
+    return true;
 }
 
-void* VlcVideoOutput::RV32VideoFrame::video_lock_cb( void** planes )
+bool VlcVideoOutput::RV32VideoFrame::lock( vmem2_planes_t* planes )
 {
-    *planes = _frameBuffer;
+    planes->planes[0] = _frameBuffer;
 
-    return nullptr;
+    return true;
 }
 
 void VlcVideoOutput::RV32VideoFrame::fillBlack()
 {
-    if( _frameBuffer ) {
+    if( _frameBuffer )
         memset( _frameBuffer, 0, size() );
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,54 +65,41 @@ VlcVideoOutput::I420VideoFrame::I420VideoFrame() :
 {
 }
 
-unsigned VlcVideoOutput::I420VideoFrame::video_format_cb( char* chroma,
-                                                          unsigned* width, unsigned* height,
-                                                          unsigned* pitches, unsigned* lines )
+bool VlcVideoOutput::I420VideoFrame::setup( vmem2_video_format_t* format )
 {
-    _width = *width;
-    _height = *height;
+    format->chroma = I420_FOURCC;
+    format->plane_count = 3;
 
-    const char CHROMA[] = "I420";
+    _width = format->visible_width;
+    _height = format->visible_height;
 
-    memcpy( chroma, CHROMA, sizeof( CHROMA ) - 1 );
+    format->pitches[0] = format->width;
+    format->pitches[1] = format->width >> 1;
+    format->pitches[2] = format->width >> 1;
 
-    const unsigned evenWidth = *width + ( *width & 1 );
-    const unsigned evenHeight = *height + ( *height & 1 );
+    format->lines[0] = format->height;
+    format->lines[1] = format->height >> 1;
+    format->lines[2] = format->height >> 1;
 
-    pitches[0] = evenWidth; if( pitches[0] % 4 ) pitches[0] += 4 - pitches[0] % 4;
-    pitches[1] = evenWidth / 2; if( pitches[1] % 4 ) pitches[1] += 4 - pitches[1] % 4;
-    pitches[2] = pitches[1];
+    _uPlaneOffset = format->pitches[0] * format->lines[0];
+    _vPlaneOffset = _uPlaneOffset + format->pitches[1] * format->lines[1];
 
-    assert( 0 == pitches[0] % 4 && 0 == pitches[1] % 4 && 0 == pitches[2] % 4 );
+    _size = format->pitches[0] * format->lines[0] +
+            format->pitches[1] * format->lines[1] +
+            format->pitches[2] * format->lines[2];
 
-    lines[0] = evenHeight;
-    lines[1] = evenHeight / 2;
-    lines[2] = lines[1];
-
-    _uPlaneOffset = pitches[0] * lines[0];
-    _vPlaneOffset = _uPlaneOffset + pitches[1] * lines[1];
-
-    _size = pitches[0] * lines[0] +
-            pitches[1] * lines[1] +
-            pitches[2] * lines[2];
-
-    return 3;
+    return true;
 }
 
-void* VlcVideoOutput::I420VideoFrame::video_lock_cb( void** planes )
+bool VlcVideoOutput::I420VideoFrame::lock( vmem2_planes_t* planes )
 {
-    char* buffer = static_cast<char*>( _frameBuffer );
+    char* buffer= static_cast<char*>( _frameBuffer );
 
-    planes[0] = buffer;
-    planes[1] = buffer + _uPlaneOffset;
-    planes[2] = buffer + _vPlaneOffset;
+    planes->planes[0] = buffer;
+    planes->planes[1] = buffer + _uPlaneOffset;
+    planes->planes[2] = buffer + _vPlaneOffset;
 
-    return nullptr;
-}
-
-void VlcVideoOutput::I420VideoFrame::video_unlock_cb( void * picture, void * const * planes )
-{
-    VideoFrame::video_unlock_cb( picture, planes );
+    return true;
 }
 
 void VlcVideoOutput::I420VideoFrame::fillBlack()
@@ -241,9 +219,49 @@ VlcVideoOutput::~VlcVideoOutput()
     _async.data = nullptr;
 }
 
-unsigned VlcVideoOutput::video_format_cb( char* chroma,
-                                          unsigned* width, unsigned* height,
-                                          unsigned* pitches, unsigned* lines )
+bool VlcVideoOutput::vmem2_setup( void* opaque, vmem2_video_format_t* format )
+{
+    return reinterpret_cast<VlcVideoOutput*>( opaque )->setup( format );
+}
+
+bool VlcVideoOutput::vmem2_lock( void* opaque, vmem2_planes_t* planes )
+{
+    return reinterpret_cast<VlcVideoOutput*>( opaque )->lock( planes );
+}
+
+void VlcVideoOutput::vmem2_unlock( void* opaque, const vmem2_planes_t* planes )
+{
+    reinterpret_cast<VlcVideoOutput*>( opaque )->unlock( planes );
+}
+
+void VlcVideoOutput::vmem2_display( void* opaque, const vmem2_planes_t* planes )
+{
+    reinterpret_cast<VlcVideoOutput*>( opaque )->display( planes );
+}
+
+void VlcVideoOutput::vmem2_cleanup( void* opaque )
+{
+    reinterpret_cast<VlcVideoOutput*>( opaque )->cleanup();
+}
+
+bool VlcVideoOutput::open( vlc::basic_player* player )
+{
+    if( !player || !player->is_open() )
+        return false;
+
+    vmem2_set_callbacks( player->get_mp(),
+                         vmem2_setup ,
+                         vmem2_lock, vmem2_unlock, vmem2_display,
+                         vmem2_cleanup, this );
+
+    return true;
+}
+
+void VlcVideoOutput::close()
+{
+}
+
+bool VlcVideoOutput::setup( vmem2_video_format_t* format )
 {
     std::unique_ptr<VideoEvent> frameSetupEvent;
     switch( _pixelFormat ) {
@@ -262,9 +280,7 @@ unsigned VlcVideoOutput::video_format_cb( char* chroma,
         }
     }
 
-    const unsigned planeCount = _videoFrame->video_format_cb( chroma,
-                                                              width, height,
-                                                              pitches, lines );
+    _videoFrame->setup( format );
 
     _guard.lock();
     _videoEvents.push_back( std::move( frameSetupEvent ) );
@@ -273,30 +289,27 @@ unsigned VlcVideoOutput::video_format_cb( char* chroma,
 
     _videoFrame->waitBuffer();
 
-    return planeCount;
+    return true;
 }
 
-void VlcVideoOutput::video_cleanup_cb()
+void VlcVideoOutput::cleanup()
 {
-    _videoFrame->video_cleanup_cb();
-
     _guard.lock();
     _videoEvents.emplace_back( new FrameCleanupEvent );
     _guard.unlock();
     uv_async_send( &_async );
 }
 
-void* VlcVideoOutput::video_lock_cb( void** planes )
+bool VlcVideoOutput::lock( vmem2_planes_t* planes )
 {
-    return _videoFrame->video_lock_cb( planes );
+    return _videoFrame->lock( planes );
 }
 
-void VlcVideoOutput::video_unlock_cb( void* picture, void *const * planes )
+void VlcVideoOutput::unlock( const vmem2_planes_t* /*planes*/ )
 {
-    _videoFrame->video_unlock_cb( picture, planes );
 }
 
-void VlcVideoOutput::video_display_cb( void* /*picture*/ )
+void VlcVideoOutput::display( const vmem2_planes_t* /*planes*/ )
 {
     notifyFrameReady();
 }

@@ -1,30 +1,32 @@
 #pragma once
 
 #include <deque>
+#include <vector>
 #include <memory>
 #include <mutex>
 #include <atomic>
 
 #include <uv.h>
 
-#include <libvlc_wrapper/vlc_vmem.h>
+#include <libvlc_wrapper\vlc_basic_player.h>
+
+#include <vmem2.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-class VlcVideoOutput :
-    private vlc::basic_vmem_wrapper
+class VlcVideoOutput
 {
 protected:
     VlcVideoOutput();
     ~VlcVideoOutput();
-
-    using vlc::basic_vmem_wrapper::open;
-    using vlc::basic_vmem_wrapper::close;
 
     enum class PixelFormat
     {
         RV32 = 0,
         I420,
     };
+
+    bool open( vlc::basic_player* player );
+    void close();
 
     PixelFormat pixelFormat() const
         { return _pixelFormat; }
@@ -54,14 +56,17 @@ private:
     void handleAsync();
 
 private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* lines ) override;
-    void video_cleanup_cb() override;
+    static bool vmem2_setup( void* opaque, vmem2_video_format_t* format );
+    static bool vmem2_lock( void* opaque, vmem2_planes_t* planes );
+    static void vmem2_unlock( void* opaque, const vmem2_planes_t* planes );
+    static void vmem2_display( void* opaque, const vmem2_planes_t* planes );
+    static void vmem2_cleanup( void* opaque );
 
-    void* video_lock_cb( void** planes ) override;
-    void video_unlock_cb( void* picture, void *const * planes ) override;
-    void video_display_cb( void* picture ) override;
+    bool setup( vmem2_video_format_t* format );
+    bool lock( vmem2_planes_t* planes );
+    void unlock( const vmem2_planes_t* planes );
+    void display( const vmem2_planes_t* planes );
+    void cleanup();
 
     void notifyFrameReady();
 
@@ -96,13 +101,8 @@ public:
     void setFrameBuffer( void* frameBuffer );
 
 protected:
-    virtual unsigned video_format_cb( char* chroma,
-                                      unsigned* width, unsigned* height,
-                                      unsigned* pitches, unsigned* lines ) = 0;
-
-    virtual void* video_lock_cb( void** planes ) = 0;
-    virtual void video_unlock_cb( void* picture, void *const * planes );
-    void video_cleanup_cb();
+    virtual bool setup( vmem2_video_format_t* format ) = 0;
+    virtual bool lock( vmem2_planes_t* planes ) = 0;
 
     virtual void fillBlack() = 0;
 
@@ -125,10 +125,8 @@ public:
     void fillBlack() override;
 
 private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* line ) override;
-    void* video_lock_cb( void** planes ) override;
+    bool setup( vmem2_video_format_t* format ) override;
+    bool lock( vmem2_planes_t* planes ) override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -145,11 +143,8 @@ public:
     void fillBlack() override;
 
 private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* lines ) override;
-    void* video_lock_cb( void** planes ) override;
-    void video_unlock_cb( void* picture, void *const * planes ) override;
+    bool setup( vmem2_video_format_t* format ) override;
+    bool lock( vmem2_planes_t* planes ) override;
 
 private:
     unsigned _uPlaneOffset;
