@@ -92,10 +92,8 @@ public:
     unsigned size() const
         { return _size; }
 
-    void setFrameBuffer( void* frameBuffer )
-        { _frameBuffer = frameBuffer; }
-    bool bufferFilled() const
-        { return _bufferFilled; }
+    void waitBuffer();
+    void setFrameBuffer( void* frameBuffer );
 
 protected:
     virtual unsigned video_format_cb( char* chroma,
@@ -115,10 +113,9 @@ protected:
     unsigned _height;
     unsigned _size;
 
-    std::vector<char> _tmpFrameBuffer;
-    unsigned _tmpFrameBufferLocks;
+    std::mutex _guard;
+    std::condition_variable _waiter;
     void* _frameBuffer; //FIXME! maybe we need std::atomic here
-    bool _bufferFilled;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
