@@ -115,7 +115,7 @@ protected:
 
     std::mutex _guard;
     std::condition_variable _waiter;
-    void* _frameBuffer; //FIXME! maybe we need std::atomic here
+    void* _frameBuffer;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
