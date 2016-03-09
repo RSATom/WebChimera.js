@@ -104,6 +104,8 @@ struct JsVlcPlayer::LibvlcLogEvent : public JsVlcPlayer::AsyncData
 void JsVlcPlayer::LibvlcLogEvent::process( JsVlcPlayer* jsPlayer )
 {
     v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope scope( isolate );
+
     v8::Local<v8::Integer> jsLevel = v8::Integer::New( isolate, level );
     v8::Local<v8::String> jsMessage = v8::String::NewFromUtf8( isolate, message.c_str(), v8::String::kNormalString );
     v8::Local<v8::String> jsFormat = v8::String::NewFromUtf8( isolate, format.c_str(), v8::String::kNormalString );
