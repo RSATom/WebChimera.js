@@ -25,7 +25,7 @@ function build() {
         buildSystem.options.arch = defaultWinArch;
     }
 
-    buildSystem.rebuild();
+    buildSystem.rebuild().catch( function() { process.exit(1); } );
 }
 
 var times = 0;
@@ -37,14 +37,14 @@ function begin() {
     catch(e) {
         if (e.code == "MODULE_NOT_FOUND") {
             if (times++ == 5) {
-                throw e;
+                process.exit(1);
             }
             else {
                 setTimeout(begin, 2000);
             }
         }
         else {
-            throw e;
+            process.exit(1);
         }
     }
 };
