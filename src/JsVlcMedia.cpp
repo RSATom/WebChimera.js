@@ -37,6 +37,8 @@ void JsVlcMedia::initJsApi()
     SET_RO_PROPERTY( instanceTemplate, "mrl", &JsVlcMedia::mrl );
 
     SET_RO_PROPERTY( instanceTemplate, "parsed", &JsVlcMedia::parsed );
+    SET_RO_PROPERTY( instanceTemplate, "duration", &JsVlcMedia::duration );
+
     SET_RW_PROPERTY( instanceTemplate, "title",
                      &JsVlcMedia::title,
                      &JsVlcMedia::setTitle );
@@ -261,3 +263,7 @@ void JsVlcMedia::setDisabled( bool disabled )
     }
 }
 
+double JsVlcMedia::duration()
+{
+    return static_cast<double>( _media.duration() );
+}

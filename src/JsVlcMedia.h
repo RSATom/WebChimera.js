@@ -48,6 +48,8 @@ public:
     bool disabled();
     void setDisabled( bool );
 
+    double duration();
+
 private:
     JsVlcMedia( v8::Local<v8::Object>& thisObject,
                 JsVlcPlayer*,
