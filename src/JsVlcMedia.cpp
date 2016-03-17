@@ -36,6 +36,7 @@ void JsVlcMedia::initJsApi()
     SET_RO_PROPERTY( instanceTemplate, "trackID", &JsVlcMedia::trackID );
     SET_RO_PROPERTY( instanceTemplate, "mrl", &JsVlcMedia::mrl );
 
+    SET_RO_PROPERTY( instanceTemplate, "parsed", &JsVlcMedia::parsed );
     SET_RW_PROPERTY( instanceTemplate, "title",
                      &JsVlcMedia::title,
                      &JsVlcMedia::setTitle );
@@ -45,6 +46,9 @@ void JsVlcMedia::initJsApi()
     SET_RW_PROPERTY( instanceTemplate, "disabled",
                      &JsVlcMedia::disabled,
                      &JsVlcMedia::setDisabled );
+
+    SET_METHOD( constructorTemplate, "parse", &JsVlcMedia::parse );
+    SET_METHOD( constructorTemplate, "parseAsync", &JsVlcMedia::parseAsync );
 
     Local<Function> constructor = constructorTemplate->GetFunction();
     _jsConstructor.Reset( isolate, constructor );
@@ -190,6 +194,21 @@ std::string JsVlcMedia::trackID()
 std::string JsVlcMedia::mrl()
 {
     return get_media().mrl();
+}
+
+bool JsVlcMedia::parsed()
+{
+    return get_media().is_parsed();
+}
+
+void JsVlcMedia::parse()
+{
+    return get_media().parse();
+}
+
+void JsVlcMedia::parseAsync()
+{
+    return get_media().parse( true );
 }
 
 std::string JsVlcMedia::title()

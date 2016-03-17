@@ -35,6 +35,10 @@ public:
     std::string trackID();
     std::string mrl();
 
+    bool parsed();
+    void parse();
+    void parseAsync();
+
     std::string title();
     void setTitle( const std::string& );
 
