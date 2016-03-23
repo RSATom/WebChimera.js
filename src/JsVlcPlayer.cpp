@@ -364,7 +364,9 @@ void JsVlcPlayer::initLibvlc( const v8::Local<v8::Array>& vlcOpts )
         _libvlc = libvlc_new( static_cast<int>( libvlcOpts.size() ), libvlcOpts.data() );
     }
 
-    libvlc_log_set(_libvlc, JsVlcPlayer::log_event_wrapper, this);
+    if( _libvlc ) {
+        libvlc_log_set(_libvlc, JsVlcPlayer::log_event_wrapper, this);
+    }
 }
 
 JsVlcPlayer::~JsVlcPlayer()
