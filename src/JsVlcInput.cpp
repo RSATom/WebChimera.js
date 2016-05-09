@@ -26,6 +26,7 @@ void JsVlcInput::initJsApi()
     SET_RO_PROPERTY( instanceTemplate, "length", &JsVlcInput::length );
     SET_RO_PROPERTY( instanceTemplate, "fps", &JsVlcInput::fps );
     SET_RO_PROPERTY( instanceTemplate, "state", &JsVlcInput::state );
+    SET_RO_PROPERTY( instanceTemplate, "hasVout", &JsVlcInput::hasVout );
 
     SET_RW_PROPERTY( instanceTemplate, "position",
                      &JsVlcInput::position,
@@ -99,6 +100,11 @@ double JsVlcInput::fps()
 unsigned JsVlcInput::state()
 {
     return _jsPlayer->player().get_state();
+}
+
+bool JsVlcInput::hasVout()
+{
+    return _jsPlayer->player().video().has_vout();
 }
 
 double JsVlcInput::position()

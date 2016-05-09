@@ -17,6 +17,7 @@ public:
     double length();
     double fps();
     unsigned state();
+    bool hasVout();
 
     double position();
     void setPosition( double );
@@ -26,6 +27,7 @@ public:
 
     double rate();
     void setRate( double );
+
 
 private:
     static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
