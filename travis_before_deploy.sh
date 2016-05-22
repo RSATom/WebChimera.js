@@ -28,7 +28,6 @@ if [ "$TRAVIS_OS_NAME" = "osx" ]; then
 
   mkdir -p $OUT_DIR/lib/vlc/lib
   ln -sf ../../libvlccore.8.dylib $OUT_DIR/lib/vlc/lib/libvlccore.8.dylib
-  ln -sf ../../liblzma.5.dylib $OUT_DIR/lib/vlc/lib/liblzma.5.dylib
 
   tar -cvzf $WCJS_FULL_ARCHIVE_PATH -C $BUILD_DIR webchimera.js
 
