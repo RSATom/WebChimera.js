@@ -295,31 +295,6 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
 
     _instances.insert( this );
 
-    initLibvlc( vlcOpts );
-
-    _player.set_playback_mode( vlc::mode_normal );
-
-    if( _libvlc && _player.open( _libvlc ) ) {
-        _player.register_callback( this );
-        VlcVideoOutput::open( &_player.basic_player() );
-    } else {
-        assert( false );
-    }
-
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    _jsEventEmitter.Reset( isolate,
-        v8::Local<v8::Function>::Cast(
-            Require( "events" )->Get(
-                v8::String::NewFromUtf8( isolate,
-                                         "EventEmitter",
-                                         v8::String::kInternalizedString ) ) )->NewInstance() );
-
-    _jsInput = JsVlcInput::create( *this );
-    _jsAudio = JsVlcAudio::create( *this );
-    _jsVideo = JsVlcVideo::create( *this );
-    _jsSubtitles = JsVlcSubtitles::create( *this );
-    _jsPlaylist = JsVlcPlaylist::create( *this );
-
     uv_loop_t* loop = uv_default_loop();
 
     uv_async_init( loop, &_async,
@@ -332,6 +307,31 @@ JsVlcPlayer::JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8:
 
     uv_timer_init( loop, &_errorTimer );
     _errorTimer.data = this;
+
+    v8::Isolate* isolate = v8::Isolate::GetCurrent();
+    _jsEventEmitter.Reset( isolate,
+        v8::Local<v8::Function>::Cast(
+            Require( "events" )->Get(
+                v8::String::NewFromUtf8( isolate,
+                                         "EventEmitter",
+                                         v8::String::kInternalizedString ) ) )->NewInstance() );
+
+    initLibvlc( vlcOpts );
+
+    _player.set_playback_mode( vlc::mode_normal );
+
+    if( _libvlc && _player.open( _libvlc ) ) {
+        _player.register_callback( this );
+        VlcVideoOutput::open( &_player.basic_player() );
+    } else {
+        assert( false );
+    }
+
+    _jsInput = JsVlcInput::create( *this );
+    _jsAudio = JsVlcAudio::create( *this );
+    _jsVideo = JsVlcVideo::create( *this );
+    _jsSubtitles = JsVlcSubtitles::create( *this );
+    _jsPlaylist = JsVlcPlaylist::create( *this );
 }
 
 void JsVlcPlayer::initLibvlc( const v8::Local<v8::Array>& vlcOpts )
