@@ -15,8 +15,11 @@ environment:
       npm_config_wcjs_runtime_version: "0.33.9"
       npm_config_wcjs_arch: "ia32"
     - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.33.9"
-      npm_config_wcjs_arch: "x64"
+      npm_config_wcjs_runtime_version: "0.37.6"
+      npm_config_wcjs_arch: "ia32"
+    - npm_config_wcjs_runtime: "electron"
+      npm_config_wcjs_runtime_version: "0.37.8"
+      npm_config_wcjs_arch: "ia32"
 
     - npm_config_wcjs_runtime: "nw"
       npm_config_wcjs_runtime_version: "latest"
