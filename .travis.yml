@@ -4,7 +4,7 @@ os:
 
 env:
   global:
-    - VLC_VER=2.2.3
+    - VLC_VER=2.2.4
     - ELECTRON_VER=latest
     - ELECTRON_VER2=0.33.9
     - NW_VER=latest
