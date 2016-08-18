@@ -16,6 +16,8 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [libvlc 2.2.x is broken on OS X](https://github.com/RSATom/WebChimera.js/wiki/Due-to-bug-libvlc-2.2.x-could-not-be-used-as-is-outside-VLC.app-on-Mac-OS-X)
 * [libvlc has compatibility issue with latest `Electron`/`NW.js` versions on Windows](https://github.com/RSATom/WebChimera.js/wiki/Latest-Electron-and-NW.js-versions-has-compatibility-issue-on-Windows)
 * [libvlc 2.2.x x64 has issue with subtitles](https://github.com/RSATom/WebChimera.js/issues/65)
+* [Webpack](https://github.com/RSATom/WebChimera.js/wiki/WebChimera.js-with-Webpack)
+
 
 ## Known Projects using WebChimera.js
 * [Stremio](http://www.strem.io/)
