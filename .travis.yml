@@ -1,6 +1,6 @@
 os:
   - osx
-  - linux
+#  - linux
 
 env:
   global:
