@@ -1,6 +1,9 @@
 os:
   - osx
-#  - linux
+  - linux
+
+dist: trusty
+sudo: required
 
 env:
   global:
