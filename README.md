@@ -35,7 +35,7 @@ libvlc binding for node.js/io.js/NW.js/Electron
 
 ### Using prebuilt on Linux
 * install `VLC` (for apt based distros: `sudo apt-get install vlc`)
-* `npm install WebChimera.js --ignore-scripts`
+* `npm install webchimera.js --ignore-scripts`
 * download `WebChimera.js_*_linux.zip` and extract to `webchimera.js\Release`
 
 ## Build Prerequisites
