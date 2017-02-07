@@ -23,6 +23,7 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [Stremio](http://www.strem.io/)
 * [Powder Player](http://powder.media/)
 * [Butter](http://butterproject.org/)
+* [PagalPlayer](https://hlgkb.github.io/pagal-player/)
 
 ## Prebuilt binaries
 * https://github.com/RSATom/WebChimera.js/releases
