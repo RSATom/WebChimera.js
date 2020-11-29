@@ -12,32 +12,32 @@ class JsVlcAudio :
 {
 public:
     static void initJsApi();
-    static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
+    static v8::UniquePersistent<v8::Object> create(JsVlcPlayer& player);
 
-    std::string description( uint32_t index );
+    std::string description(uint32_t index);
 
     unsigned count();
 
     int track();
-    void setTrack( int );
+    void setTrack(int);
 
     bool muted();
-    void setMuted( bool muted );
+    void setMuted(bool muted);
 
     unsigned volume();
-    void setVolume( unsigned );
+    void setVolume(unsigned);
 
     int channel();
-    void setChannel( unsigned );
+    void setChannel(unsigned);
 
     int delay();
-    void setDelay( int );
+    void setDelay(int);
 
     void toggleMute();
 
 private:
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsVlcAudio( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    JsVlcAudio(v8::Local<v8::Object>& thisObject, JsVlcPlayer*);
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;

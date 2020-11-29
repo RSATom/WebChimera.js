@@ -50,17 +50,19 @@ class JsVlcPlayer :
     static const char* callbackNames[CB_Max];
 
 public:
-    static void initJsApi( const v8::Handle<v8::Object>& exports );
+    static void initJsApi(const v8::Handle<v8::Object>& exports);
 
-    static void jsPlay( const v8::FunctionCallbackInfo<v8::Value>& args );
+    static void jsPlay(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-    static void getJsCallback( v8::Local<v8::String> property,
-                               const v8::PropertyCallbackInfo<v8::Value>& info,
-                               Callbacks_e callback );
-    static void setJsCallback( v8::Local<v8::String> property,
-                               v8::Local<v8::Value> value,
-                               const v8::PropertyCallbackInfo<void>& info,
-                               Callbacks_e callback );
+    static void getJsCallback(
+        v8::Local<v8::String> property,
+        const v8::PropertyCallbackInfo<v8::Value>& info,
+        Callbacks_e callback);
+    static void setJsCallback(
+        v8::Local<v8::String> property,
+        v8::Local<v8::Value> value,
+        const v8::PropertyCallbackInfo<void>& info,
+        Callbacks_e callback);
 
     bool playing();
     double length();
@@ -70,22 +72,22 @@ public:
     v8::Local<v8::Object> getEventEmitter();
 
     unsigned pixelFormat();
-    void setPixelFormat( unsigned );
+    void setPixelFormat(unsigned);
 
     double position();
-    void setPosition( double );
+    void setPosition(double);
 
     double time();
-    void setTime( double );
+    void setTime(double);
 
     unsigned volume();
-    void setVolume( unsigned );
+    void setVolume(unsigned);
 
     bool muted();
-    void setMuted( bool );
+    void setMuted(bool);
 
     void play();
-    void play( const std::string& mrl );
+    void play(const std::string& mrl);
     void pause();
     void togglePause();
     void stop();
@@ -103,8 +105,8 @@ public:
     void close();
 
 private:
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsVlcPlayer( v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    JsVlcPlayer(v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts);
     ~JsVlcPlayer();
 
     struct AsyncData;
@@ -113,26 +115,28 @@ private:
     struct LibvlcLogEvent;
 
     static void closeAll();
-    void initLibvlc( const v8::Local<v8::Array>& vlcOpts );
+    void initLibvlc(const v8::Local<v8::Array>& vlcOpts);
 
     void handleAsync();
 
     //could come from worker thread
-    void media_player_event( const libvlc_event_t* );
+    void media_player_event(const libvlc_event_t*);
 
-    static void log_event_wrapper( void *, int, const libvlc_log_t *, const char *, va_list );
-    void log_event( int, const libvlc_log_t *, const char *, va_list );
+    static void log_event_wrapper(
+        void*, int, const libvlc_log_t *, const char *, va_list);
+    void log_event(int, const libvlc_log_t *, const char *, va_list);
 
-    void handleLibvlcEvent( const libvlc_event_t& );
+    void handleLibvlcEvent(const libvlc_event_t&);
 
     void currentItemEndReached();
 
-    void callCallback( Callbacks_e callback,
-                       std::initializer_list<v8::Local<v8::Value> > list = std::initializer_list<v8::Local<v8::Value> >() );
+    void callCallback(
+        Callbacks_e callback,
+        std::initializer_list<v8::Local<v8::Value> > list = std::initializer_list<v8::Local<v8::Value> >());
 
 protected:
-    void* onFrameSetup( const RV32VideoFrame& ) override;
-    void* onFrameSetup( const I420VideoFrame& ) override;
+    void* onFrameSetup(const RV32VideoFrame&) override;
+    void* onFrameSetup(const I420VideoFrame&) override;
     void onFrameReady() override;
     void onFrameCleanup() override;
 

@@ -12,7 +12,7 @@ class JsVlcInput :
 {
 public:
     static void initJsApi();
-    static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
+    static v8::UniquePersistent<v8::Object> create(JsVlcPlayer& player);
 
     double length();
     double fps();
@@ -20,18 +20,17 @@ public:
     bool hasVout();
 
     double position();
-    void setPosition( double );
+    void setPosition(double);
 
     double time();
-    void setTime( double );
+    void setTime(double);
 
     double rate();
-    void setRate( double );
-
+    void setRate(double);
 
 private:
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsVlcInput( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    JsVlcInput(v8::Local<v8::Object>& thisObject, JsVlcPlayer*);
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;

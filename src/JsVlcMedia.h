@@ -13,9 +13,10 @@ class JsVlcMedia :
 public:
     static void initJsApi();
 
-    static v8::Local<v8::Object> create( JsVlcPlayer& player,
-                                         const vlc::media& media  );
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
+    static v8::Local<v8::Object> create(
+        JsVlcPlayer& player,
+        const vlc::media& media );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
 
     std::string artist();
     std::string genre();
@@ -40,27 +41,28 @@ public:
     void parseAsync();
 
     std::string title();
-    void setTitle( const std::string& );
+    void setTitle(const std::string&);
 
     std::string setting();
-    void setSetting( const std::string& );
+    void setSetting(const std::string&);
 
     bool disabled();
-    void setDisabled( bool );
+    void setDisabled(bool);
 
     double duration();
 
 private:
-    JsVlcMedia( v8::Local<v8::Object>& thisObject,
-                JsVlcPlayer*,
-                const vlc::media& media );
+    JsVlcMedia(
+        v8::Local<v8::Object>& thisObject,
+        JsVlcPlayer*,
+        const vlc::media& media);
 
-    std::string meta( libvlc_meta_t e_meta );
-    void setMeta( libvlc_meta_t e_meta, const std::string& );
+    std::string meta(libvlc_meta_t e_meta);
+    void setMeta(libvlc_meta_t e_meta, const std::string&);
 
 protected:
     vlc::media get_media()
-        { return _media; };
+        { return _media; }
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;

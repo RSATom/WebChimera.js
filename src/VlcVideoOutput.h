@@ -29,7 +29,7 @@ protected:
 
     PixelFormat pixelFormat() const
         { return _pixelFormat; }
-    void setPixelFormat( PixelFormat format )
+    void setPixelFormat(PixelFormat format)
         { _pixelFormat = format; }
 
     class VideoFrame;
@@ -37,8 +37,8 @@ protected:
     class I420VideoFrame;
 
     //should return pointer to buffer for video frame
-    virtual void* onFrameSetup( const RV32VideoFrame& ) = 0;
-    virtual void* onFrameSetup( const I420VideoFrame& ) = 0;
+    virtual void* onFrameSetup(const RV32VideoFrame&) = 0;
+    virtual void* onFrameSetup(const I420VideoFrame&) = 0;
     virtual void onFrameReady() = 0;
     virtual void onFrameCleanup() = 0;
 
@@ -55,14 +55,15 @@ private:
     void handleAsync();
 
 private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* lines ) override;
+    unsigned video_format_cb(
+        char* chroma,
+        unsigned* width, unsigned* height,
+        unsigned* pitches, unsigned* lines) override;
     void video_cleanup_cb() override;
 
-    void* video_lock_cb( void** planes ) override;
-    void video_unlock_cb( void* picture, void *const * planes ) override;
-    void video_display_cb( void* picture ) override;
+    void* video_lock_cb(void** planes) override;
+    void video_unlock_cb(void* picture, void *const * planes) override;
+    void video_display_cb(void* picture) override;
 
     void notifyFrameReady();
 
@@ -94,15 +95,16 @@ public:
         { return _size; }
 
     void waitBuffer();
-    void setFrameBuffer( void* frameBuffer );
+    void setFrameBuffer(void* frameBuffer);
 
 protected:
-    virtual unsigned video_format_cb( char* chroma,
-                                      unsigned* width, unsigned* height,
-                                      unsigned* pitches, unsigned* lines ) = 0;
+    virtual unsigned video_format_cb(
+        char* chroma,
+        unsigned* width, unsigned* height,
+        unsigned* pitches, unsigned* lines) = 0;
 
-    virtual void* video_lock_cb( void** planes ) = 0;
-    virtual void video_unlock_cb( void* picture, void *const * planes );
+    virtual void* video_lock_cb(void** planes) = 0;
+    virtual void video_unlock_cb(void* picture, void *const * planes);
     void video_cleanup_cb();
 
     virtual void fillBlack() = 0;
@@ -126,10 +128,11 @@ public:
     void fillBlack() override;
 
 private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* line ) override;
-    void* video_lock_cb( void** planes ) override;
+    unsigned video_format_cb(
+        char* chroma,
+        unsigned* width, unsigned* height,
+        unsigned* pitches, unsigned* line) override;
+    void* video_lock_cb(void** planes) override;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -146,11 +149,12 @@ public:
     void fillBlack() override;
 
 private:
-    unsigned video_format_cb( char* chroma,
-                              unsigned* width, unsigned* height,
-                              unsigned* pitches, unsigned* lines ) override;
-    void* video_lock_cb( void** planes ) override;
-    void video_unlock_cb( void* picture, void *const * planes ) override;
+    unsigned video_format_cb(
+        char* chroma,
+        unsigned* width, unsigned* height,
+        unsigned* pitches, unsigned* lines) override;
+    void* video_lock_cb(void** planes) override;
+    void video_unlock_cb(void* picture, void *const * planes) override;
 
 private:
     unsigned _uPlaneOffset;

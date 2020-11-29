@@ -12,23 +12,23 @@ class JsVlcSubtitles :
 {
 public:
     static void initJsApi();
-    static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
+    static v8::UniquePersistent<v8::Object> create(JsVlcPlayer& player);
 
-    std::string description( uint32_t index );
+    std::string description(uint32_t index);
 
     unsigned count();
 
     int track();
-    void setTrack( int );
+    void setTrack(int);
 
     int delay();
-    void setDelay( int );
+    void setDelay(int);
 
-   bool load( const std::string& path );
+   bool load(const std::string& path);
 
 private:
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsVlcSubtitles( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    JsVlcSubtitles(v8::Local<v8::Object>& thisObject, JsVlcPlayer*);
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;

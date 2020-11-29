@@ -10,17 +10,17 @@ class JsVlcPlaylistItems :
 {
 public:
     static void initJsApi();
-    static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
+    static v8::UniquePersistent<v8::Object> create(JsVlcPlayer& player);
 
-    v8::Local<v8::Object> item( uint32_t index );
+    v8::Local<v8::Object> item(uint32_t index);
 
     unsigned count();
     void clear();
-    bool remove( unsigned idx );
+    bool remove(unsigned idx);
 
 private:
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsVlcPlaylistItems( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    JsVlcPlaylistItems(v8::Local<v8::Object>& thisObject, JsVlcPlayer*);
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;

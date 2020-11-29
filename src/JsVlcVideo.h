@@ -12,33 +12,33 @@ class JsVlcVideo :
 {
 public:
     static void initJsApi();
-    static v8::UniquePersistent<v8::Object> create( JsVlcPlayer& player );
+    static v8::UniquePersistent<v8::Object> create(JsVlcPlayer& player);
 
     unsigned count();
 
     int track();
-    void setTrack( unsigned );
+    void setTrack(unsigned);
 
     double contrast();
-    void setContrast( double );
+    void setContrast(double);
 
     double brightness();
-    void setBrightness( double );
+    void setBrightness(double);
 
     int hue();
-    void setHue( int );
+    void setHue(int);
 
     double saturation();
-    void setSaturation( double );
+    void setSaturation(double);
 
     double gamma();
-    void setGamma( double );
+    void setGamma(double);
 
     v8::Local<v8::Object> deinterlace();
 
 private:
-    static void jsCreate( const v8::FunctionCallbackInfo<v8::Value>& args );
-    JsVlcVideo( v8::Local<v8::Object>& thisObject, JsVlcPlayer* );
+    static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
+    JsVlcVideo(v8::Local<v8::Object>& thisObject, JsVlcPlayer*);
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;
