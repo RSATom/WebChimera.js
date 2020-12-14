@@ -10,40 +10,41 @@ void JsVlcAudio::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
     constructorTemplate->SetClassName(
-        String::NewFromUtf8(isolate, "VlcVideo", v8::String::kInternalizedString));
+        String::NewFromUtf8(isolate, "VlcVideo", NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
     instanceTemplate->SetInternalFieldCount(1);
 
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Error", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Error", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_AudioChannel_Error),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Stereo", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Stereo", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_AudioChannel_Stereo),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "ReverseStereo", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "ReverseStereo", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_AudioChannel_RStereo),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Left", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Left", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_AudioChannel_Left),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Right", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Right", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_AudioChannel_Right),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Dolby", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Dolby", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_AudioChannel_Dolbys),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     SET_RO_INDEXED_PROPERTY(instanceTemplate, &JsVlcAudio::description);
 
@@ -57,7 +58,7 @@ void JsVlcAudio::initJsApi()
 
     SET_METHOD(constructorTemplate, "toggleMute", &JsVlcAudio::toggleMute);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor = constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 }
 
@@ -66,14 +67,17 @@ v8::UniquePersistent<v8::Object> JsVlcAudio::create(JsVlcPlayer& player)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Function> constructor =
         Local<Function>::New(isolate, _jsConstructor);
 
     Local<Value> argv[] = { player.handle() };
 
-    return { isolate, constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv) };
+    return {
+        isolate,
+        constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked()
+    };
 }
 
 void JsVlcAudio::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -81,7 +85,7 @@ void JsVlcAudio::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> thisObject = args.Holder();
     if(args.IsConstructCall() && thisObject->InternalFieldCount() > 0) {
@@ -96,7 +100,9 @@ void JsVlcAudio::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             Local<Function>::New(isolate, _jsConstructor);
         Local<Value> argv[] = { args[0] };
         args.GetReturnValue().Set(
-            constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+            constructor->NewInstance(
+                context,
+                sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 

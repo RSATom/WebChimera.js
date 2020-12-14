@@ -13,7 +13,7 @@ if( MSVC )
 elseif( APPLE )
     set( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/deps/VLC.app/Contents/MacOS/lib" )
 else()
-    add_definitions( -std=c++11 )
+    add_definitions( -std=c++14 )
 endif()
 
 file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -29,6 +29,12 @@ add_subdirectory( ${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper )
 add_library( ${PROJECT_NAME} SHARED ${SOURCE_FILES} )
 set_target_properties( ${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node" )
 target_link_libraries( ${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper )
+target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+    V8_31BIT_SMIS_ON_64BIT_ARCH
+    V8_COMPRESS_POINTERS
+    V8_REVERSE_JSARGS
+    )
 
 #get_cmake_property( _variableNames VARIABLES )
 #foreach( _variableName ${_variableNames} )

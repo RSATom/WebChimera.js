@@ -1,35 +1,15 @@
 os: Visual Studio 2015
 
 environment:
-  VLC_VER: 2.2.4
+  VLC_VER: 3.0.11
 
   matrix:
     - npm_config_wcjs_runtime: "electron"
       npm_config_wcjs_runtime_version: "latest"
-      npm_config_wcjs_arch: "ia32"
-    - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "latest"
-      npm_config_wcjs_arch: "x64"
-
-    - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.33.9"
-      npm_config_wcjs_arch: "ia32"
-    - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.37.6"
-      npm_config_wcjs_arch: "ia32"
-    - npm_config_wcjs_runtime: "electron"
-      npm_config_wcjs_runtime_version: "0.37.8"
-      npm_config_wcjs_arch: "ia32"
-
-    - npm_config_wcjs_runtime: "nw"
-      npm_config_wcjs_runtime_version: "latest"
-      npm_config_wcjs_arch: "ia32"
-    - npm_config_wcjs_runtime: "nw"
-      npm_config_wcjs_runtime_version: "latest"
       npm_config_wcjs_arch: "x64"
 
 install:
-  - if "%npm_config_wcjs_runtime%"=="electron" if "%npm_config_wcjs_runtime_version%"=="latest" for /f "delims=" %%a in ('npm show electron-prebuilt version') do set npm_config_wcjs_runtime_version=%%a
+  - if "%npm_config_wcjs_runtime%"=="electron" if "%npm_config_wcjs_runtime_version%"=="latest" for /f "delims=" %%a in ('npm show electron version') do set npm_config_wcjs_runtime_version=%%a
   - if "%npm_config_wcjs_runtime%"=="nw" if "%npm_config_wcjs_runtime_version%"=="latest" for /f "delims=" %%a in ('npm show nw version') do set npm_config_wcjs_runtime_version=%%a
   - set BUILD_DIR=%APPVEYOR_BUILD_FOLDER%\build\Release
   - set WCJS_ARCHIVE=WebChimera.js_%npm_config_wcjs_runtime%_%npm_config_wcjs_runtime_version%_%npm_config_wcjs_arch%_win.zip
@@ -48,7 +28,7 @@ deploy:
   provider: GitHub
 
   auth_token:
-    secure: lJrMMwqwi1suASlU+raxug971oNJjkn8kNu+7sXpDIxSH1wGIKcjeME1TIO1Pu3a
+    secure: v/U02/uDNhEdQDyXEYl0uSrLWW5kgwdlAL3+vRNvpieXk1FMiXF95KpBz5/H4IqP
 
   tag: $(APPVEYOR_REPO_TAG_NAME)
 
@@ -57,4 +37,4 @@ deploy:
   artifact: build\Release\$(WCJS_ARCHIVE), build\Release\$(WCJS_FULL_ARCHIVE)
 
   on:
-    appveyor_repo_tag: true
+    APPVEYOR_REPO_TAG: true

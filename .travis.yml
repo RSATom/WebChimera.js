@@ -7,18 +7,12 @@ sudo: required
 
 env:
   global:
-    - VLC_VER=2.2.4
+    - VLC_VER=3.0.11
     - ELECTRON_VER=latest
-    - ELECTRON_VER2=0.37.6
-    - ELECTRON_VER3=0.37.8
-    - NW_VER=latest
     - BUILD_DIR=./build/Release
 
   matrix:
     - npm_config_wcjs_runtime=electron npm_config_wcjs_runtime_version=$ELECTRON_VER npm_config_wcjs_arch=x64
-    - npm_config_wcjs_runtime=electron npm_config_wcjs_runtime_version=$ELECTRON_VER2 npm_config_wcjs_arch=x64
-    - npm_config_wcjs_runtime=electron npm_config_wcjs_runtime_version=$ELECTRON_VER3 npm_config_wcjs_arch=x64
-    - npm_config_wcjs_runtime=nw npm_config_wcjs_runtime_version=$NW_VER npm_config_wcjs_arch=x64
 
 addons:
   apt:
@@ -32,7 +26,7 @@ addons:
 before_install:
   - git submodule update --init --recursive
   - ./travis_before_install.sh
-  - if [[ "$npm_config_wcjs_runtime" = "electron" && "$npm_config_wcjs_runtime_version" = "latest" ]]; then export npm_config_wcjs_runtime_version=`npm show electron-prebuilt version`; fi
+  - if [[ "$npm_config_wcjs_runtime" = "electron" && "$npm_config_wcjs_runtime_version" = "latest" ]]; then export npm_config_wcjs_runtime_version=`npm show electron version`; fi
   - if [[ "$npm_config_wcjs_runtime" = "nw" && "$npm_config_wcjs_runtime_version" = "latest" ]]; then export npm_config_wcjs_runtime_version=`npm show nw version`; fi
   - export WCJS_ARCHIVE=WebChimera.js_${npm_config_wcjs_runtime}_${npm_config_wcjs_runtime_version}_${npm_config_wcjs_arch}_${TRAVIS_OS_NAME}.zip
   - export WCJS_ARCHIVE_PATH=$BUILD_DIR/$WCJS_ARCHIVE
@@ -47,7 +41,7 @@ deploy:
   provider: releases
 
   api_key:
-    secure: DQ9xU0jLcOsLE3CnkKW0jdapMzqe1uzOLZFOyXL7b0nMuF7wRp/yY6jUc5nYJ1dBXbNWd4TpRKLPOjk/1Wp5q5/ePdTMwFlJbtgLBwk5CUATc8Ur25Q6ST0gGzuDE4xXaqy/l/kOnunj4Tmbm/bOL9U120WULKsfpT2K8M4Owm4Uhp4BZHwjmtHwypakSXqph5MIJ96pZ/rN2zSJsrdLiDu4LHpOfEW6MM/vAp1RMVrSvkfg9mFroDSrA9MIES1V4n6xMyU+oqQrHXlVO5lcoKZ5Z+5dukowPY89waec2f3oCCiPDSWqN4RxINRxkR7dWf6HJwO/UecYLL/kAHDcDWLboT3DW02/bn61eyTY9z1xloJrt6FopOWZSLemGGwLKvor9/O88w9CovB8SueaKjruNa2FulZ/EN74f3PfbIVKGAEusrNoGNP0jR4vxWJz2jnUdPGRhqCMy3SrKTC45NwMEGWDxOzRJvrg/AXElwJfRFyonixmA92znAYRe9mk0Xa42WaK151BL/cpq7pzIRcnLM3OJS7pdKW64z14q8YuOikbrZzsGpSKNctb88GaL0O5w9NSjjAy0tBdwBxFkn0FHz0SQAjeAthaPKrH0JzPnSVKiwmU8BJBGSDCOf8npHOtZzknaPIaNvnSlk4yFTTm1UjMePtfo5Z3XKX4H4g=
+    secure: "CpczsCQyturCY0lpGL3EByp4KbIpWSJRO8mL1MP7TK809AYnSCebyCo4KxTdCTLcYagm97FKIhveezPcr68oGpWUJSbXPO/4eFmHEcdlcRYcS3uggaX2wU1NoDsBvtx2TrZ48hdqwlAKRlh3Umru9gvHfq8B+Mze0lSFZm393wMNe5sj3q+Jk2RExppXW6J3RYLgtFm5w/JpNFv4yFqWLSr0wManuaTZJoMpOZMdhEU03og0IT4nSoggWwA9a84SJnmzX9kTENT25c58HvPFtHKLTCdlrdHuNJ6AGhHLyAyQZgvhC0wNWfhoP1YuHpAv6SuH5a9mymQ9/K8jNj7A2IFppJuMUQFTlZZxRn6u7xtbT964O5GOEXgvidsxe8eieQFDZVXhv1rhOS7Lu5ZcD5T7qeH24AJMa0CDsh9no/xYaAUlG1p2o5qpIW8sZnb3fn299smFZi/d5KzldB4wEbTwG3e4W/zGz7cQUoJt8s9ODOki4rPxjs4jUQovbEocwAmoLKl9mCMTi0BENGkdDfT6WbD9p1ic2w1B1fDCdsNCf0GaIyn2Qg26uNz1tnVPUShkcrbJFsVEsmT7HqEyIg4bBQtse0c4kKnBIdzFbUATsNko9+slx4Vg31xAkBXTfI2n7Fc1NkgAf/xfdY5GCNXPNic05V6SSMkAp2R3Rcw="
 
   file:
     - $WCJS_ARCHIVE_PATH

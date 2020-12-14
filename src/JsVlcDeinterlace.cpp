@@ -10,11 +10,12 @@ void JsVlcDeinterlace::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
     constructorTemplate->SetClassName(
-        String::NewFromUtf8(isolate, "VlcDeinterlace", v8::String::kInternalizedString));
+        String::NewFromUtf8(isolate, "VlcDeinterlace", NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
@@ -23,7 +24,7 @@ void JsVlcDeinterlace::initJsApi()
     SET_METHOD(constructorTemplate, "enable", &JsVlcDeinterlace::enable);
     SET_METHOD(constructorTemplate, "disable", &JsVlcDeinterlace::disable);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor = constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 }
 
@@ -32,6 +33,7 @@ v8::UniquePersistent<v8::Object> JsVlcDeinterlace::create(JsVlcPlayer& player)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<Function> constructor =
@@ -39,7 +41,12 @@ v8::UniquePersistent<v8::Object> JsVlcDeinterlace::create(JsVlcPlayer& player)
 
     Local<Value> argv[] = { player.handle() };
 
-    return { isolate, constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv) };
+    return {
+        isolate,
+        constructor->NewInstance(
+            context,
+            sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked()
+    };
 }
 
 void JsVlcDeinterlace::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -47,7 +54,7 @@ void JsVlcDeinterlace::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> thisObject = args.Holder();
     if(args.IsConstructCall() && thisObject->InternalFieldCount() > 0) {
@@ -62,7 +69,7 @@ void JsVlcDeinterlace::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             Local<Function>::New(isolate, _jsConstructor);
         Local<Value> argv[] = { args[0] };
         args.GetReturnValue().Set(
-            constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+            constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 

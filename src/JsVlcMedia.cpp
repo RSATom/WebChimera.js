@@ -10,10 +10,12 @@ void JsVlcMedia::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
-    constructorTemplate->SetClassName(String::NewFromUtf8(isolate, "JsVlcMedia", v8::String::kInternalizedString));
+    constructorTemplate->SetClassName(
+        String::NewFromUtf8(isolate, "JsVlcMedia", NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
@@ -55,7 +57,8 @@ void JsVlcMedia::initJsApi()
     SET_METHOD(constructorTemplate, "parse", &JsVlcMedia::parse);
     SET_METHOD(constructorTemplate, "parseAsync", &JsVlcMedia::parseAsync);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor =
+        constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 }
 
@@ -66,14 +69,23 @@ v8::Local<v8::Object> JsVlcMedia::create(
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     EscapableHandleScope scope(isolate);
 
     Local<Function> constructor =
         Local<Function>::New(isolate, _jsConstructor);
 
-    Local<Value> argv[] = { player.handle(), External::New(isolate, const_cast<vlc::media*>(&media)) };
+    Local<Value> argv[] = {
+        player.handle(),
+        External::New(isolate, const_cast<vlc::media*>(&media))
+    };
 
-    return scope.Escape(constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+    return
+        scope.Escape(
+            constructor->NewInstance(
+                context,
+                sizeof(argv) / sizeof(argv[0]),
+                argv).ToLocalChecked());
 }
 
 void JsVlcMedia::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -81,6 +93,7 @@ void JsVlcMedia::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<Object> thisObject = args.Holder();
@@ -100,7 +113,9 @@ void JsVlcMedia::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             Local<Function>::New(isolate, _jsConstructor);
         Local<Value> argv[] = { args[0], args[1] };
         args.GetReturnValue().Set(
-            constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+            constructor->NewInstance(
+                context,
+                sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 

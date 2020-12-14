@@ -13,27 +13,32 @@ void JsVlcPlaylist::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
-    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
-    constructorTemplate->SetClassName(String::NewFromUtf8(isolate, "VlcPlaylist", v8::String::kInternalizedString));
+    Local<FunctionTemplate> constructorTemplate =
+        FunctionTemplate::New(isolate, jsCreate);
+    constructorTemplate->SetClassName(
+        String::NewFromUtf8(
+            isolate,
+            "VlcPlaylist",
+            NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
     instanceTemplate->SetInternalFieldCount(1);
 
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Normal", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Normal", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, static_cast<int>(PlaybackMode::Normal)),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Loop", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Loop", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, static_cast<int>(PlaybackMode::Loop)),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Single", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Single", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, static_cast<int>(PlaybackMode::Single)),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     SET_RO_PROPERTY(instanceTemplate, "itemCount", &JsVlcPlaylist::itemCount);
     SET_RO_PROPERTY(instanceTemplate, "isPlaying", &JsVlcPlaylist::isPlaying);
@@ -55,7 +60,7 @@ void JsVlcPlaylist::initJsApi()
     SET_METHOD(constructorTemplate, "removeItem",  &JsVlcPlaylist::removeItem);
     SET_METHOD(constructorTemplate, "advanceItem",  &JsVlcPlaylist::advanceItem);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor = constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 }
 
@@ -64,14 +69,17 @@ v8::UniquePersistent<v8::Object> JsVlcPlaylist::create(JsVlcPlayer& player)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Function> constructor =
         Local<Function>::New(isolate, _jsConstructor);
 
     Local<Value> argv[] = { player.handle() };
 
-    return { isolate, constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv) };
+    return {
+        isolate,
+        constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked()
+    };
 }
 
 void JsVlcPlaylist::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -79,7 +87,7 @@ void JsVlcPlaylist::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> thisObject = args.Holder();
     if(args.IsConstructCall() && thisObject->InternalFieldCount() > 0) {
@@ -94,7 +102,7 @@ void JsVlcPlaylist::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             Local<Function>::New(isolate, _jsConstructor);
         Local<Value> argv[] = { args[0] };
         args.GetReturnValue().Set(
-            constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+            constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 

@@ -103,19 +103,23 @@ struct JsVlcPlayer::LibvlcLogEvent : public JsVlcPlayer::AsyncData
 
 void JsVlcPlayer::LibvlcLogEvent::process(JsVlcPlayer* jsPlayer)
 {
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope scope(isolate);
+    using namespace v8;
 
-    v8::Local<v8::Integer> jsLevel = v8::Integer::New(isolate, level);
-    v8::Local<v8::String> jsMessage = v8::String::NewFromUtf8(isolate, message.c_str(), v8::String::kNormalString);
-    v8::Local<v8::String> jsFormat = v8::String::NewFromUtf8(isolate, format.c_str(), v8::String::kNormalString);
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+
+    Local<Integer> jsLevel = Integer::New(isolate, level);
+    Local<String> jsMessage =
+        String::NewFromUtf8(isolate, message.c_str()).ToLocalChecked();
+    Local<String> jsFormat =
+        String::NewFromUtf8(isolate, format.c_str()).ToLocalChecked();
 
     jsPlayer->callCallback(CB_LogMessage, { jsLevel, jsMessage, jsFormat });
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 #define SET_CALLBACK_PROPERTY(objTemplate, name, callback)                                                      \
-    objTemplate->SetAccessor(String::NewFromUtf8(Isolate::GetCurrent(), name, v8::String::kInternalizedString), \
+    objTemplate->SetAccessor(String::NewFromUtf8(Isolate::GetCurrent(), name, v8::NewStringType::kInternalized).ToLocalChecked(), \
         [] (v8::Local<v8::String> property,                                                                     \
             const v8::PropertyCallbackInfo<v8::Value>& info)                                                    \
         {                                                                                                       \
@@ -141,76 +145,78 @@ void JsVlcPlayer::initJsApi(const v8::Handle<v8::Object>& exports)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
-    constructorTemplate->SetClassName(String::NewFromUtf8(isolate, "VlcPlayer", v8::String::kInternalizedString));
+    constructorTemplate->SetClassName(
+        String::NewFromUtf8(
+            isolate,
+            "VlcPlayer",
+            NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
     instanceTemplate->SetInternalFieldCount(1);
 
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "RV32", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "RV32", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, static_cast<int>(PixelFormat::RV32)),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "I420", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "I420", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, static_cast<int>(PixelFormat::I420)),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "NothingSpecial", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "NothingSpecial", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_NothingSpecial),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Opening", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Opening", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Opening),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Buffering", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Buffering", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Buffering),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Playing", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Playing", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Playing),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Paused", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Paused", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Paused),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Stopped", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Stopped", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Stopped),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Ended", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Ended", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Ended),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "Error", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "Error", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, libvlc_Error),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     Local<String> vlcVersion =
         String::NewFromUtf8(
             isolate,
-            libvlc_get_version(),
-            v8::String::kNormalString);
+            libvlc_get_version()).ToLocalChecked();
     Local<String> vlcChangeset =
         String::NewFromUtf8(
             isolate,
-            libvlc_get_changeset(),
-            v8::String::kNormalString);
+            libvlc_get_changeset()).ToLocalChecked();
 
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "vlcVersion", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "vlcVersion", NewStringType::kInternalized).ToLocalChecked(),
         vlcVersion,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
     protoTemplate->Set(
-        String::NewFromUtf8(isolate, "vlcChangeset", v8::String::kInternalizedString),
+        String::NewFromUtf8(isolate, "vlcChangeset", NewStringType::kInternalized).ToLocalChecked(),
         vlcChangeset,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     SET_CALLBACK_PROPERTY(instanceTemplate, "onFrameSetup", CB_FrameSetup);
     SET_CALLBACK_PROPERTY(instanceTemplate, "onFrameReady", CB_FrameReady);
@@ -263,20 +269,28 @@ void JsVlcPlayer::initJsApi(const v8::Handle<v8::Object>& exports)
 
     SET_METHOD(constructorTemplate, "close", &JsVlcPlayer::close);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor = constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 
-    exports->Set(String::NewFromUtf8(isolate, "VlcPlayer", v8::String::kInternalizedString), constructor);
-    exports->Set(String::NewFromUtf8(isolate, "createPlayer", v8::String::kInternalizedString), constructor);
+    exports->Set(
+        context,
+        String::NewFromUtf8(isolate, "VlcPlayer", NewStringType::kInternalized).ToLocalChecked(),
+        constructor);
+    exports->Set(
+        context,
+        String::NewFromUtf8(isolate, "createPlayer", NewStringType::kInternalized).ToLocalChecked(),
+        constructor);
 
-    exports->ForceSet(
-        String::NewFromUtf8(isolate, "vlcVersion", v8::String::kInternalizedString),
+    exports->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "vlcVersion", NewStringType::kInternalized).ToLocalChecked(),
         vlcVersion,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    exports->ForceSet(
-        String::NewFromUtf8(isolate, "vlcChangeset", v8::String::kInternalizedString),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    exports->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "vlcChangeset", NewStringType::kInternalized).ToLocalChecked(),
         vlcChangeset,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 }
 
 void JsVlcPlayer::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -284,7 +298,7 @@ void JsVlcPlayer::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> thisObject = args.Holder();
     if(args.IsConstructCall()) {
@@ -299,7 +313,10 @@ void JsVlcPlayer::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
         Local<Value> argv[] = { args[0] };
         Local<Function> constructor =
             Local<Function>::New(isolate, _jsConstructor);
-        args.GetReturnValue().Set(constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+        args.GetReturnValue().Set(
+            constructor->NewInstance(
+                context,
+                sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 
@@ -315,6 +332,8 @@ JsVlcPlayer::JsVlcPlayer(
     const v8::Local<v8::Array>& vlcOpts) :
     _libvlc(nullptr)
 {
+    using namespace v8;
+
     Wrap(thisObject);
 
     _instances.insert(this);
@@ -332,14 +351,23 @@ JsVlcPlayer::JsVlcPlayer(
     uv_timer_init(loop, &_errorTimer);
     _errorTimer.data = this;
 
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    _jsEventEmitter.Reset(isolate,
-        v8::Local<v8::Function>::Cast(
+    Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
+
+    Local<Function> jsEventEmitterConstructor =
+        Local<Function>::Cast(
             Require("events")->Get(
-                v8::String::NewFromUtf8(
+                context,
+                String::NewFromUtf8(
                     isolate,
                     "EventEmitter",
-                    v8::String::kInternalizedString)))->NewInstance());
+                    NewStringType::kInternalized).ToLocalChecked()
+            ).ToLocalChecked());
+
+    Local<Object> jsEventEmitter =
+        Local<Object>::Cast(jsEventEmitterConstructor->NewInstance(context).ToLocalChecked());
+
+    _jsEventEmitter.Reset(isolate, jsEventEmitter);
 
     initLibvlc(vlcOpts);
 
@@ -363,6 +391,9 @@ void JsVlcPlayer::initLibvlc(const v8::Local<v8::Array>& vlcOpts)
 {
     using namespace v8;
 
+    Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
+
     if(_libvlc) {
         assert(false);
         libvlc_release(_libvlc);
@@ -379,7 +410,7 @@ void JsVlcPlayer::initLibvlc(const v8::Local<v8::Array>& vlcOpts)
             i < std::min<unsigned>(vlcOpts->Length(), std::numeric_limits<short>::max());
             ++i)
         {
-            String::Utf8Value opt(vlcOpts->Get(i)->ToString());
+            String::Utf8Value opt(isolate, vlcOpts->Get(context, i).ToLocalChecked());
             if(opt.length()) {
                 auto it = opts.emplace(opts.end(), *opt);
                 libvlcOpts.push_back(it->c_str());
@@ -501,34 +532,42 @@ void* JsVlcPlayer::onFrameSetup(const RV32VideoFrame& videoFrame)
     }
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> global = isolate->GetCurrentContext()->Global();
 
     Local<Value> abv =
         global->Get(
+            context,
             String::NewFromUtf8(
                 isolate,
                 "Uint8Array",
-                v8::String::kInternalizedString));
+                NewStringType::kInternalized).ToLocalChecked()).ToLocalChecked();
     Local<Value> argv[] =
         { Integer::NewFromUnsigned(isolate, videoFrame.size()) };
     Local<Uint8Array> jsArray =
-        Handle<Uint8Array>::Cast(Handle<Function>::Cast(abv)->NewInstance(1, argv));
+        Handle<Uint8Array>::Cast(
+            Handle<Function>::Cast(abv)->NewInstance(context, 1, argv).ToLocalChecked());
 
     Local<Integer> jsWidth = Integer::New(isolate, videoFrame.width());
     Local<Integer> jsHeight = Integer::New(isolate, videoFrame.height());
     Local<Integer> jsPixelFormat = Integer::New(isolate, static_cast<int>(PixelFormat::RV32));
 
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "width", v8::String::kInternalizedString), jsWidth,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "height", v8::String::kInternalizedString), jsHeight,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "pixelFormat", v8::String::kInternalizedString), jsPixelFormat,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "width", NewStringType::kInternalized).ToLocalChecked(),
+        jsWidth,
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "height", NewStringType::kInternalized).ToLocalChecked(),
+        jsHeight,
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "pixelFormat", NewStringType::kInternalized).ToLocalChecked(),
+        jsPixelFormat,
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     _jsFrameBuffer.Reset(isolate, jsArray);
 
@@ -554,44 +593,54 @@ void* JsVlcPlayer::onFrameSetup(const I420VideoFrame& videoFrame)
     }
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> global = isolate->GetCurrentContext()->Global();
 
     Local<Value> abv =
         global->Get(
-            String::NewFromUtf8(isolate,
-                                 "Uint8Array",
-                                 v8::String::kInternalizedString));
+            context,
+            String::NewFromUtf8(
+                isolate,
+                "Uint8Array",
+                NewStringType::kInternalized
+            ).ToLocalChecked()
+        ).ToLocalChecked();
     Local<Value> argv[] =
         { Integer::NewFromUnsigned(isolate, videoFrame.size()) };
     Local<Uint8Array> jsArray =
-        Handle<Uint8Array>::Cast(Handle<Function>::Cast(abv)->NewInstance(1, argv));
+        Handle<Uint8Array>::Cast(
+            Handle<Function>::Cast(abv)->NewInstance(context, 1, argv).ToLocalChecked());
 
     Local<Integer> jsWidth = Integer::New(isolate, videoFrame.width());
     Local<Integer> jsHeight = Integer::New(isolate, videoFrame.height());
     Local<Integer> jsPixelFormat = Integer::New(isolate, static_cast<int>(PixelFormat::I420));
 
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "width", v8::String::kInternalizedString),
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "width", NewStringType::kInternalized).ToLocalChecked(),
         jsWidth,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "height", v8::String::kInternalizedString),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "height", NewStringType::kInternalized).ToLocalChecked(),
         jsHeight,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "pixelFormat", v8::String::kInternalizedString),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "pixelFormat", NewStringType::kInternalized).ToLocalChecked(),
         jsPixelFormat,
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "uOffset", v8::String::kInternalizedString),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "uOffset", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, videoFrame.uPlaneOffset()),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
-    jsArray->ForceSet(
-        String::NewFromUtf8(isolate, "vOffset", v8::String::kInternalizedString),
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+    jsArray->DefineOwnProperty(
+        context,
+        String::NewFromUtf8(isolate, "vOffset", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, videoFrame.vPlaneOffset()),
-        static_cast<v8::PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
 
     _jsFrameBuffer.Reset(isolate, jsArray);
 
@@ -609,7 +658,7 @@ void JsVlcPlayer::onFrameReady()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     assert(!_jsFrameBuffer.IsEmpty()); //FIXME! maybe it worth add condition here
     callCallback(CB_FrameReady, { Local<Value>::New(Isolate::GetCurrent(), _jsFrameBuffer) });
@@ -625,7 +674,7 @@ void JsVlcPlayer::handleLibvlcEvent(const libvlc_event_t& libvlcEvent)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Callbacks_e callback = CB_Max;
 
@@ -741,15 +790,15 @@ void JsVlcPlayer::callCallback(
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
-    std::vector<v8::Local<v8::Value> > argList;
+    std::vector<Local<Value> > argList;
     argList.reserve(list.size());
     argList.push_back(
         String::NewFromUtf8(
             isolate,
             callbackNames[callback],
-            v8::String::kInternalizedString));
+            NewStringType::kInternalized).ToLocalChecked());
     if(list.size() > 0)
         argList.insert(argList.end(), list);
 
@@ -757,28 +806,40 @@ void JsVlcPlayer::callCallback(
         Local<Function> callbackFunc =
             Local<Function>::New(isolate, _jsCallbacks[callback]);
 
-        callbackFunc->Call(handle(), static_cast<int>(argList.size() - 1), argList.data() + 1);
+        callbackFunc->Call(context, handle(), static_cast<int>(argList.size() - 1), argList.data() + 1);
     }
 
     Local<Object> eventEmitter = getEventEmitter();
-    Local<Function> emitFunction =
-        v8::Local<v8::Function>::Cast(
-            eventEmitter->Get(
-                String::NewFromUtf8(isolate, "emit", v8::String::kInternalizedString)));
 
-    emitFunction->Call(eventEmitter, static_cast<int>(argList.size()), argList.data());
+    Local<Function> emitFunction =
+        Local<Function>::Cast(
+            eventEmitter->Get(
+                context,
+                String::NewFromUtf8(isolate, "emit", NewStringType::kInternalized).ToLocalChecked()
+            ).ToLocalChecked());
+
+    auto eNull = emitFunction->IsNullOrUndefined();
+    if(!emitFunction->IsNullOrUndefined()) {
+        emitFunction->Call(
+            context,
+            eventEmitter,
+            static_cast<int>(argList.size()),
+            argList.data());
+    }
 }
 
 void JsVlcPlayer::jsPlay(const v8::FunctionCallbackInfo<v8::Value>& args)
 {
     using namespace v8;
+    Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
 
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>(args.Holder());
 
     if(args.Length() == 0) {
         jsPlayer->play();
     } else if(args.Length() ==  1) {
-        String::Utf8Value mrl(args[0]->ToString());
+        String::Utf8Value mrl(isolate, args[0]);
         if(mrl.length()) {
             jsPlayer->play(*mrl);
         }
@@ -798,7 +859,7 @@ void JsVlcPlayer::getJsCallback(
         return;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Function> callbackFunc =
         Local<Function>::New(isolate, jsPlayer->_jsCallbacks[callback]);
@@ -815,7 +876,7 @@ void JsVlcPlayer::setJsCallback(
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     JsVlcPlayer* jsPlayer = ObjectWrap::Unwrap<JsVlcPlayer>(info.Holder());
 

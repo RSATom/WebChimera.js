@@ -4,11 +4,15 @@
 #include "JsVlcPlayer.h"
 #include "NodeTools.h"
 
-void Init(v8::Handle<v8::Object> exports, v8::Handle<v8::Object> module)
+extern "C" NODE_MODULE_EXPORT void
+NODE_MODULE_INITIALIZER(
+    v8::Local<v8::Object> exports,
+    v8::Local<v8::Value> module,
+    v8::Local<v8::Context> context)
 {
-    thisModule.Reset(v8::Isolate::GetCurrent(), module);
+    using namespace v8;
+
+    thisModule.Reset(v8::Isolate::GetCurrent(), Local<Object>::Cast(module));
 
     JsVlcPlayer::initJsApi(exports);
 }
-
-NODE_MODULE(WebChimera, Init)

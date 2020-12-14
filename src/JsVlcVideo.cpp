@@ -13,11 +13,12 @@ void JsVlcVideo::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
     constructorTemplate->SetClassName(
-        String::NewFromUtf8(isolate, "VlcVideo", v8::String::kInternalizedString));
+        String::NewFromUtf8(isolate, "VlcVideo", NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
@@ -35,7 +36,7 @@ void JsVlcVideo::initJsApi()
     SET_RW_PROPERTY(instanceTemplate, "saturation", &JsVlcVideo::saturation, &JsVlcVideo::setSaturation);
     SET_RW_PROPERTY(instanceTemplate, "gamma", &JsVlcVideo::gamma, &JsVlcVideo::setGamma);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor = constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 }
 
@@ -44,14 +45,17 @@ v8::UniquePersistent<v8::Object> JsVlcVideo::create(JsVlcPlayer& player)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Function> constructor =
         Local<Function>::New(isolate, _jsConstructor);
 
     Local<Value> argv[] = { player.handle() };
 
-    return { isolate, constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv) };
+    return {
+        isolate,
+        constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked()
+    };
 }
 
 void JsVlcVideo::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -59,7 +63,7 @@ void JsVlcVideo::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
-    HandleScope scope(isolate);
+    Local<Context> context = isolate->GetCurrentContext();
 
     Local<Object> thisObject = args.Holder();
     if(args.IsConstructCall() && thisObject->InternalFieldCount() > 0) {
@@ -74,7 +78,7 @@ void JsVlcVideo::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             Local<Function>::New(isolate, _jsConstructor);
         Local<Value> argv[] = { args[0] };
         args.GetReturnValue().Set(
-            constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+            constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 

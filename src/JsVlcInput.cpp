@@ -13,11 +13,12 @@ void JsVlcInput::initJsApi()
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
     constructorTemplate->SetClassName(
-        String::NewFromUtf8(isolate, "VlcInput", v8::String::kInternalizedString));
+        String::NewFromUtf8(isolate, "VlcInput", NewStringType::kInternalized).ToLocalChecked());
 
     Local<ObjectTemplate> protoTemplate = constructorTemplate->PrototypeTemplate();
     Local<ObjectTemplate> instanceTemplate = constructorTemplate->InstanceTemplate();
@@ -41,7 +42,7 @@ void JsVlcInput::initJsApi()
         &JsVlcInput::rate,
         &JsVlcInput::setRate);
 
-    Local<Function> constructor = constructorTemplate->GetFunction();
+    Local<Function> constructor = constructorTemplate->GetFunction(context).ToLocalChecked();
     _jsConstructor.Reset(isolate, constructor);
 }
 
@@ -50,6 +51,7 @@ v8::UniquePersistent<v8::Object> JsVlcInput::create(JsVlcPlayer& player)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<Function> constructor =
@@ -57,7 +59,10 @@ v8::UniquePersistent<v8::Object> JsVlcInput::create(JsVlcPlayer& player)
 
     Local<Value> argv[] = { player.handle() };
 
-    return { isolate, constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv) };
+    return {
+        isolate,
+        constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked()
+    };
 }
 
 void JsVlcInput::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -65,6 +70,7 @@ void JsVlcInput::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     using namespace v8;
 
     Isolate* isolate = Isolate::GetCurrent();
+    Local<Context> context = isolate->GetCurrentContext();
     HandleScope scope(isolate);
 
     Local<Object> thisObject = args.Holder();
@@ -80,7 +86,7 @@ void JsVlcInput::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             Local<Function>::New(isolate, _jsConstructor);
         Local<Value> argv[] = { args[0] };
         args.GetReturnValue().Set(
-            constructor->NewInstance(sizeof(argv) / sizeof(argv[0]), argv));
+            constructor->NewInstance(context, sizeof(argv) / sizeof(argv[0]), argv).ToLocalChecked());
     }
 }
 
