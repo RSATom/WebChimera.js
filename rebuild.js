@@ -8,7 +8,8 @@ function build() {
     var options = {
         runtime: process.env.npm_config_wcjs_runtime || undefined,
         runtimeVersion: process.env.npm_config_wcjs_runtime_version || undefined,
-        arch: process.env.npm_config_wcjs_arch || undefined
+        arch: process.env.npm_config_wcjs_arch || undefined,
+        debug: true
     };
 
     var buildSystem = new cmakeJS.BuildSystem(options);
