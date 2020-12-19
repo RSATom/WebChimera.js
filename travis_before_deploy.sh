@@ -27,7 +27,7 @@ if [ "$TRAVIS_OS_NAME" = "osx" ]; then
   cp -R $VLC_APP/Contents/MacOS/share/lua/playlist $OUT_DIR/lib/vlc/share/lua
 
   mkdir -p $OUT_DIR/lib/vlc/lib
-  ln -sf ../../libvlccore.8.dylib $OUT_DIR/lib/vlc/lib/libvlccore.8.dylib
+  ln -sf ../../libvlccore.9.dylib $OUT_DIR/lib/vlc/lib/libvlccore.9.dylib
 
   tar -cvzf $WCJS_FULL_ARCHIVE_PATH -C $BUILD_DIR webchimera.js
 
