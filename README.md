@@ -44,14 +44,13 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [Visual Studio Community 2013](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
 * [VLC Player](http://www.videolan.org/vlc/download-windows.html) in your PATH environment variable;
 * [CMake](http://www.cmake.org/);
-* [io.js](https://iojs.org) or [Node.js](https://nodejs.org);
 * [NW.js ia32](http://nwjs.io/) or [Electron ia32](http://electron.atom.io/);
 
 ### Mac OS X
 * [Apple XCode](https://developer.apple.com/xcode/);
 * [VLC Player](http://www.videolan.org/vlc/download-macosx.html);
 * [CMake](http://www.cmake.org/);
-* [io.js](https://iojs.org) or [Node.js](https://nodejs.org);
+* [Node.js](https://nodejs.org);
 * [NW.js](http://nwjs.io/) or [Electron](http://electron.atom.io/);
 
 ### Linux
@@ -62,9 +61,9 @@ for apt based distros:
 ### Windows
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `build_nwjs.cmd` or `build_electron.cmd` or `build_node.cmd` or `build_iojs.cmd`
+* `build_nwjs.cmd` or `build_electron.cmd` or `build_node.cmd`
 
 ### Mac OS X & Linux
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `./build_nwjs.sh` or `./build_electron.sh` or `./build_node.sh` or `./build_iojs.sh`
+* `./build_nwjs.sh` or `./build_electron.sh` or `./build_node.sh`
