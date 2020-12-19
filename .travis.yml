@@ -16,11 +16,7 @@ env:
 
 addons:
   apt:
-    sources:
-    - kalakris-cmake
-
     packages:
-    - cmake
     - libvlc-dev
 
 before_install:
