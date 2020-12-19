@@ -1,6 +1,9 @@
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required(VERSION 3.1)
 
 project( WebChimera.js )
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if( MSVC )
     foreach( flag_var
@@ -12,8 +15,6 @@ if( MSVC )
     endforeach()
 elseif( APPLE )
     set( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/deps/VLC.app/Contents/MacOS/lib" )
-else()
-    add_definitions( -std=c++14 )
 endif()
 
 file( GLOB SOURCE_FILES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
