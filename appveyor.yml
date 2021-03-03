@@ -7,6 +7,9 @@ environment:
     - npm_config_wcjs_runtime: "electron"
       npm_config_wcjs_runtime_version: "latest"
       npm_config_wcjs_arch: "x64"
+    - npm_config_wcjs_runtime: "electron"
+      npm_config_wcjs_runtime_version: "latest"
+      npm_config_wcjs_arch: "ia32"
 
 install:
   - if "%npm_config_wcjs_runtime%"=="electron" if "%npm_config_wcjs_runtime_version%"=="latest" for /f "delims=" %%a in ('npm show electron version') do set npm_config_wcjs_runtime_version=%%a
