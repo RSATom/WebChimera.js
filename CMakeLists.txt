@@ -30,12 +30,15 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/deps/libvlc_wrapper)
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper)
-target_compile_definitions(${PROJECT_NAME}
-    PUBLIC
-    V8_31BIT_SMIS_ON_64BIT_ARCH
-    V8_COMPRESS_POINTERS
-    V8_REVERSE_JSARGS
-    )
+
+if(NOT WIN32 OR ${NODE_ARCH} EQUAL "x64")
+    target_compile_definitions(${PROJECT_NAME}
+        PUBLIC
+        V8_31BIT_SMIS_ON_64BIT_ARCH
+        V8_COMPRESS_POINTERS
+        V8_REVERSE_JSARGS
+        )
+endif()
 
 #get_cmake_property(_variableNames VARIABLES)
 #foreach(_variableName ${_variableNames})
