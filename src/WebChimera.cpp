@@ -10,9 +10,5 @@ NODE_MODULE_INITIALIZER(
     v8::Local<v8::Value> module,
     v8::Local<v8::Context> context)
 {
-    using namespace v8;
-
-    thisModule.Reset(v8::Isolate::GetCurrent(), Local<Object>::Cast(module));
-
-    JsVlcPlayer::initJsApi(exports);
+    JsVlcPlayer::initJsApi(exports, module, context);
 }

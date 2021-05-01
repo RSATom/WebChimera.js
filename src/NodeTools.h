@@ -9,7 +9,6 @@
 
 #include "Tools.h"
 
-extern v8::Persistent<v8::Object> thisModule;
 
 template<typename T>
 inline T FromJsValue(const v8::Local<v8::Value>& value)

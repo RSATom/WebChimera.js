@@ -48,7 +48,25 @@ const char* JsVlcPlayer::callbackNames[] =
 };
 
 v8::Persistent<v8::Function> JsVlcPlayer::_jsConstructor;
-std::set<JsVlcPlayer*> JsVlcPlayer::_instances;
+
+// https://nodejs.org/api/addons.html#addons_context_aware_addons
+///////////////////////////////////////////////////////////////////////////////
+struct JsVlcPlayer::ContextData
+{
+    ContextData(const v8::Local<v8::Object>& thisModule) :
+        thisModule(v8::Isolate::GetCurrent(), thisModule) {}
+    ~ContextData();
+
+    v8::Persistent<v8::Object> thisModule;
+    std::set<JsVlcPlayer*> instances;
+};
+
+JsVlcPlayer::ContextData::~ContextData()
+{
+    for(JsVlcPlayer* p : instances) {
+        p->close();
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 struct JsVlcPlayer::AsyncData
@@ -132,9 +150,23 @@ void JsVlcPlayer::LibvlcLogEvent::process(JsVlcPlayer* jsPlayer)
             JsVlcPlayer::setJsCallback(property, value, info, callback);                                        \
         })
 
-void JsVlcPlayer::initJsApi(const v8::Handle<v8::Object>& exports)
+void JsVlcPlayer::initJsApi(
+    const v8::Local<v8::Object>& exports,
+    const v8::Local<v8::Value>& thisModule,
+    const v8::Local<v8::Context>& context)
 {
-    node::AtExit([] (void*) { JsVlcPlayer::closeAll(); });
+    using namespace v8;
+
+    Isolate* isolate = context->GetIsolate();
+    ContextData* contextData =
+        new ContextData(
+            Local<Object>::Cast(thisModule));
+    Local<External> externalContextData = External::New(isolate, contextData);
+    node::AddEnvironmentCleanupHook(
+        isolate,
+        [] (void* contextData) {
+            delete static_cast<ContextData*>(contextData);
+        }, contextData);
 
     JsVlcInput::initJsApi();
     JsVlcAudio::initJsApi();
@@ -142,12 +174,11 @@ void JsVlcPlayer::initJsApi(const v8::Handle<v8::Object>& exports)
     JsVlcSubtitles::initJsApi();
     JsVlcPlaylist::initJsApi();
 
-    using namespace v8;
+    assert(Isolate::GetCurrent() == isolate);
+    assert(isolate->GetCurrentContext() == context);
 
-    Isolate* isolate = Isolate::GetCurrent();
-    Local<Context> context = isolate->GetCurrentContext();
-
-    Local<FunctionTemplate> constructorTemplate = FunctionTemplate::New(isolate, jsCreate);
+    Local<FunctionTemplate> constructorTemplate =
+        FunctionTemplate::New(isolate, jsCreate, externalContextData);
     constructorTemplate->SetClassName(
         String::NewFromUtf8(
             isolate,
@@ -307,7 +338,10 @@ void JsVlcPlayer::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
             options = Local<Array>::Cast(args[0]);
         }
 
-        JsVlcPlayer* jsPlayer = new JsVlcPlayer(thisObject, options);
+        ContextData* contextData =
+            static_cast<ContextData*>(args.Data().As<External>()->Value());
+
+        JsVlcPlayer* jsPlayer = new JsVlcPlayer(thisObject, options, contextData);
         args.GetReturnValue().Set(jsPlayer->handle());
     } else {
         Local<Value> argv[] = { args[0] };
@@ -320,23 +354,18 @@ void JsVlcPlayer::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
     }
 }
 
-void JsVlcPlayer::closeAll()
-{
-    for(JsVlcPlayer* p : _instances) {
-        p->close();
-    }
-}
-
 JsVlcPlayer::JsVlcPlayer(
     v8::Local<v8::Object>& thisObject,
-    const v8::Local<v8::Array>& vlcOpts) :
+    const v8::Local<v8::Array>& vlcOpts,
+    ContextData* contextData) :
+    _contextData(contextData),
     _libvlc(nullptr)
 {
     using namespace v8;
 
     Wrap(thisObject);
 
-    _instances.insert(this);
+    _contextData->instances.insert(this);
 
     uv_loop_t* loop = uv_default_loop();
 
@@ -429,7 +458,7 @@ JsVlcPlayer::~JsVlcPlayer()
 {
     close();
 
-    _instances.erase(this);
+    _contextData->instances.erase(this);
 }
 
 void JsVlcPlayer::close()

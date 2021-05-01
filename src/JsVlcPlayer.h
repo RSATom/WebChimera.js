@@ -50,7 +50,10 @@ class JsVlcPlayer :
     static const char* callbackNames[CB_Max];
 
 public:
-    static void initJsApi(const v8::Handle<v8::Object>& exports);
+    static void initJsApi(
+        const v8::Local<v8::Object>& exports,
+        const v8::Local<v8::Value>& module,
+        const v8::Local<v8::Context>& context);
 
     static void jsPlay(const v8::FunctionCallbackInfo<v8::Value>& args);
 
@@ -105,8 +108,13 @@ public:
     void close();
 
 private:
+    struct ContextData;
+
     static void jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args);
-    JsVlcPlayer(v8::Local<v8::Object>& thisObject, const v8::Local<v8::Array>& vlcOpts);
+    JsVlcPlayer(
+        v8::Local<v8::Object>& thisObject,
+        const v8::Local<v8::Array>& vlcOpts,
+        ContextData*);
     ~JsVlcPlayer();
 
     struct AsyncData;
@@ -114,7 +122,6 @@ private:
     struct LibvlcEvent;
     struct LibvlcLogEvent;
 
-    static void closeAll();
     void initLibvlc(const v8::Local<v8::Array>& vlcOpts);
 
     void handleAsync();
@@ -142,7 +149,8 @@ protected:
 
 private:
     static v8::Persistent<v8::Function> _jsConstructor;
-    static std::set<JsVlcPlayer*> _instances;
+
+    ContextData *const _contextData;
 
     libvlc_instance_t* _libvlc;
     vlc::player _player;
