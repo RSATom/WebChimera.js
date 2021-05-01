@@ -219,7 +219,9 @@ void GetIndexedPropertyValue(
         }                                                                                  \
     )
 
-v8::Local<v8::Object> Require(const char* module);
+v8::Local<v8::Object> Require(
+    const v8::Local<v8::Object>& thisModule,
+    const char* module);
 
 #define SET_RO_INDEXED_PROPERTY(objTemplate, member)         \
     objTemplate->SetIndexedPropertyHandler(                  \

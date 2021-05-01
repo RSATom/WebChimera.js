@@ -383,9 +383,12 @@ JsVlcPlayer::JsVlcPlayer(
     Isolate* isolate = Isolate::GetCurrent();
     Local<Context> context = isolate->GetCurrentContext();
 
+    Local<Object> thisModule =
+        Local<Object>::New(Isolate::GetCurrent(), contextData->thisModule);
+
     Local<Function> jsEventEmitterConstructor =
         Local<Function>::Cast(
-            Require("events")->Get(
+            Require(thisModule, "events")->Get(
                 context,
                 String::NewFromUtf8(
                     isolate,
