@@ -275,22 +275,22 @@ void JsVlcPlayer::initJsApi(const v8::Handle<v8::Object>& exports)
     exports->Set(
         context,
         String::NewFromUtf8(isolate, "VlcPlayer", NewStringType::kInternalized).ToLocalChecked(),
-        constructor);
+        constructor).FromJust();
     exports->Set(
         context,
         String::NewFromUtf8(isolate, "createPlayer", NewStringType::kInternalized).ToLocalChecked(),
-        constructor);
+        constructor).FromJust();
 
     exports->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "vlcVersion", NewStringType::kInternalized).ToLocalChecked(),
         vlcVersion,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     exports->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "vlcChangeset", NewStringType::kInternalized).ToLocalChecked(),
         vlcChangeset,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
 }
 
 void JsVlcPlayer::jsCreate(const v8::FunctionCallbackInfo<v8::Value>& args)
@@ -557,17 +557,17 @@ void* JsVlcPlayer::onFrameSetup(const RV32VideoFrame& videoFrame)
         context,
         String::NewFromUtf8(isolate, "width", NewStringType::kInternalized).ToLocalChecked(),
         jsWidth,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     jsArray->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "height", NewStringType::kInternalized).ToLocalChecked(),
         jsHeight,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     jsArray->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "pixelFormat", NewStringType::kInternalized).ToLocalChecked(),
         jsPixelFormat,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
 
     _jsFrameBuffer.Reset(isolate, jsArray);
 
@@ -620,27 +620,27 @@ void* JsVlcPlayer::onFrameSetup(const I420VideoFrame& videoFrame)
         context,
         String::NewFromUtf8(isolate, "width", NewStringType::kInternalized).ToLocalChecked(),
         jsWidth,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     jsArray->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "height", NewStringType::kInternalized).ToLocalChecked(),
         jsHeight,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     jsArray->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "pixelFormat", NewStringType::kInternalized).ToLocalChecked(),
         jsPixelFormat,
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     jsArray->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "uOffset", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, videoFrame.uPlaneOffset()),
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
     jsArray->DefineOwnProperty(
         context,
         String::NewFromUtf8(isolate, "vOffset", NewStringType::kInternalized).ToLocalChecked(),
         Integer::New(isolate, videoFrame.vPlaneOffset()),
-        static_cast<PropertyAttribute>(ReadOnly | DontDelete));
+        static_cast<PropertyAttribute>(ReadOnly | DontDelete)).FromJust();
 
     _jsFrameBuffer.Reset(isolate, jsArray);
 
@@ -806,7 +806,10 @@ void JsVlcPlayer::callCallback(
         Local<Function> callbackFunc =
             Local<Function>::New(isolate, _jsCallbacks[callback]);
 
-        callbackFunc->Call(context, handle(), static_cast<int>(argList.size() - 1), argList.data() + 1);
+        callbackFunc->Call(
+            context,
+            handle(),
+            static_cast<int>(argList.size() - 1), argList.data() + 1).ToLocalChecked();
     }
 
     Local<Object> eventEmitter = getEventEmitter();
@@ -824,7 +827,7 @@ void JsVlcPlayer::callCallback(
             context,
             eventEmitter,
             static_cast<int>(argList.size()),
-            argList.data());
+            argList.data()).ToLocalChecked();
     }
 }
 
