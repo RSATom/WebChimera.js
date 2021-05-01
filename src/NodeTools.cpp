@@ -25,7 +25,7 @@ std::vector<std::string> FromJsValue<std::vector<std::string> >(
     return std::move(result);
 }
 
-v8::Local<v8::Function> RequireFunc(const v8::Local<v8::Object>& thisModule)
+static v8::Local<v8::Function> RequireFunc(const v8::Local<v8::Object>& thisModule)
 {
     using namespace v8;
 
