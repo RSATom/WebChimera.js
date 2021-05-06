@@ -1,5 +1,5 @@
 # <img alt="WebChimera.js" src="https://raw.githubusercontent.com/jaruba/wcjs-logos/master/logos/small/webchimera.png">
-libvlc binding for node.js/io.js/NW.js/Electron
+libvlc binding for Electron
 
 [![Join the chat at https://gitter.im/RSATom/WebChimera](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RSATom/WebChimera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -44,14 +44,14 @@ libvlc binding for node.js/io.js/NW.js/Electron
 * [Visual Studio Community 2019](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
 * [VLC Player](http://www.videolan.org/vlc/download-windows.html) in your PATH environment variable;
 * [CMake](http://www.cmake.org/);
-* [NW.js ia32](http://nwjs.io/) or [Electron ia32](http://electron.atom.io/);
+* [Electron ia32](http://electron.atom.io/);
 
 ### Mac OS X
 * [Apple XCode](https://developer.apple.com/xcode/);
 * [VLC Player](http://www.videolan.org/vlc/download-macosx.html);
 * [CMake](http://www.cmake.org/);
 * [Node.js](https://nodejs.org);
-* [NW.js](http://nwjs.io/) or [Electron](http://electron.atom.io/);
+* [Electron](http://electron.atom.io/);
 
 ### Linux
 for apt based distros:
@@ -61,9 +61,9 @@ for apt based distros:
 ### Windows
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `build_nwjs.cmd` or `build_electron.cmd` or `build_node.cmd`
+* `build_electron.cmd`
 
 ### Mac OS X & Linux
 * `git clone --recursive https://github.com/RSATom/WebChimera.js.git`
 * `cd WebChimera.js`
-* `./build_nwjs.sh` or `./build_electron.sh` or `./build_node.sh`
+* `./build_electron.sh`
