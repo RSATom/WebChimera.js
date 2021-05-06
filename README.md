@@ -19,12 +19,6 @@ libvlc binding for Electron
 * [Webpack](https://github.com/RSATom/WebChimera.js/wiki/WebChimera.js-with-Webpack)
 
 
-## Known Projects using WebChimera.js
-* [Stremio](http://www.strem.io/)
-* [Powder Player](http://powder.media/)
-* [Butter](http://butterproject.org/)
-* [PagalPlayer](https://hlgkb.github.io/pagal-player/)
-
 ## Prebuilt binaries
 * https://github.com/RSATom/WebChimera.js/releases
 
