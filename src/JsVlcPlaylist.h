@@ -1,6 +1,6 @@
 #pragma once
 
-#include <v8.h>
+#include <node.h>
 #include <node_object_wrap.h>
 
 #include <libvlc_wrapper/vlc_player.h>

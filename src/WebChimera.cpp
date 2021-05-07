@@ -1,5 +1,4 @@
 #include <node.h>
-#include <v8.h>
 
 #include "JsVlcPlayer.h"
 #include "NodeTools.h"

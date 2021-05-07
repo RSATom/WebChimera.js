@@ -32,6 +32,13 @@ add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB} libvlc_wrapper)
 
+if(WIN32)
+    target_compile_definitions(${PROJECT_NAME}
+        PUBLIC
+        BUILDING_NODE_EXTENSION
+        )
+endif()
+
 if(NOT WIN32 OR ${NODE_ARCH} EQUAL "x64")
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC
