@@ -38,14 +38,14 @@ libvlc binding for Electron
 * [Visual Studio Community 2019](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx);
 * [VLC Player](http://www.videolan.org/vlc/download-windows.html) in your PATH environment variable;
 * [CMake](http://www.cmake.org/);
-* [Electron ia32](http://electron.atom.io/);
+* [Electron](https://www.electronjs.org/);
 
 ### Mac OS X
 * [Apple XCode](https://developer.apple.com/xcode/);
 * [VLC Player](http://www.videolan.org/vlc/download-macosx.html);
 * [CMake](http://www.cmake.org/);
 * [Node.js](https://nodejs.org);
-* [Electron](http://electron.atom.io/);
+* [Electron](https://www.electronjs.org/);
 
 ### Linux
 for apt based distros:
