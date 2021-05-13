@@ -39,7 +39,7 @@ if(WIN32)
         )
 endif()
 
-if(NOT WIN32 OR ${NODE_ARCH} EQUAL "x64")
+if(NOT WIN32 OR ${NODE_ARCH} STREQUAL "x64")
     target_compile_definitions(${PROJECT_NAME}
         PUBLIC
         V8_31BIT_SMIS_ON_64BIT_ARCH
