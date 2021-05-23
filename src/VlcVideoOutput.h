@@ -3,8 +3,6 @@
 #include <deque>
 #include <memory>
 #include <mutex>
-#include <atomic>
-#include <condition_variable>
 
 #include <uv.h>
 
@@ -94,10 +92,12 @@ public:
     unsigned size() const
         { return _size; }
 
-    void waitBuffer();
     void setFrameBuffer(void* frameBuffer);
 
 protected:
+    void* frameBuffer();
+    bool frameReady() const;
+
     virtual unsigned video_format_cb(
         char* chroma,
         unsigned* width, unsigned* height,
@@ -116,8 +116,8 @@ protected:
     unsigned _height;
     unsigned _size;
 
+    void* _tmpFrameBuffer;
     std::mutex _guard;
-    std::condition_variable _waiter;
     void* _frameBuffer;
 };
 

@@ -7,26 +7,39 @@
 ///////////////////////////////////////////////////////////////////////////////
 VlcVideoOutput::VideoFrame::VideoFrame() :
     _width(0), _height(0), _size(0),
-    _frameBuffer(nullptr)
+    _tmpFrameBuffer(nullptr), _frameBuffer(nullptr)
 {
 }
 
 VlcVideoOutput::VideoFrame::~VideoFrame()
 {
+    if(_tmpFrameBuffer)
+        free(_tmpFrameBuffer);
 }
 
-void VlcVideoOutput::VideoFrame::waitBuffer()
+void* VlcVideoOutput::VideoFrame::frameBuffer()
 {
-    std::unique_lock<std::mutex> lock(_guard);
-    while(!_frameBuffer)
-        _waiter.wait(lock);
+    if(_tmpFrameBuffer) {
+        std::unique_lock<std::mutex> lock(_guard);
+        if(_frameBuffer) {
+            free(_tmpFrameBuffer);
+            _tmpFrameBuffer = nullptr;
+        } else
+            return _tmpFrameBuffer;
+    }
+
+    return static_cast<char*>(_frameBuffer);
+}
+
+bool VlcVideoOutput::VideoFrame::frameReady() const
+{
+    return !_tmpFrameBuffer;
 }
 
 void VlcVideoOutput::VideoFrame::setFrameBuffer(void* frameBuffer)
 {
     std::unique_lock<std::mutex> lock(_guard);
     _frameBuffer = frameBuffer;
-    _waiter.notify_one();
 }
 
 void VlcVideoOutput::VideoFrame::video_unlock_cb(void* picture, void *const * planes)
@@ -52,12 +65,14 @@ unsigned VlcVideoOutput::RV32VideoFrame::video_format_cb(
 
     _size = *pitches * *lines;
 
+    _tmpFrameBuffer = malloc(_size);
+
     return 1;
 }
 
 void* VlcVideoOutput::RV32VideoFrame::video_lock_cb(void** planes)
 {
-    *planes = _frameBuffer;
+    *planes = frameBuffer();
 
     return nullptr;
 }
@@ -108,12 +123,14 @@ unsigned VlcVideoOutput::I420VideoFrame::video_format_cb(
         pitches[1] * lines[1] +
         pitches[2] * lines[2];
 
+    _tmpFrameBuffer = malloc(_size);
+
     return 3;
 }
 
 void* VlcVideoOutput::I420VideoFrame::video_lock_cb(void** planes)
 {
-    char* buffer = static_cast<char*>(_frameBuffer);
+    uint8_t* buffer = static_cast<uint8_t*>(frameBuffer());
 
     planes[0] = buffer;
     planes[1] = buffer + _uPlaneOffset;
@@ -278,8 +295,6 @@ unsigned VlcVideoOutput::video_format_cb(
     _guard.unlock();
     uv_async_send(&_async);
 
-    _videoFrame->waitBuffer();
-
     return planeCount;
 }
 
@@ -305,7 +320,8 @@ void VlcVideoOutput::video_unlock_cb(void* picture, void *const * planes)
 
 void VlcVideoOutput::video_display_cb(void* /*picture*/)
 {
-    notifyFrameReady();
+    if(_videoFrame->frameReady())
+        notifyFrameReady();
 }
 
 void VlcVideoOutput::notifyFrameReady()
