@@ -2,6 +2,7 @@
 libvlc binding for Electron
 
 [![Join the chat at https://gitter.im/RSATom/WebChimera](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/RSATom/WebChimera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://discord.gg/3h3K3JF](https://img.shields.io/discord/716939396464508958?label=discord)](https://discord.gg/3h3K3JF)
 
 ## Demos
 * [WebChimera.js Renderer Demo](https://github.com/RSATom/wcjs-ugly-demo)
