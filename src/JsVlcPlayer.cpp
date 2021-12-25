@@ -2,6 +2,8 @@
 
 #include <string.h>
 
+#include "node.h"
+#include "node_buffer.h"
 #include "NodeTools.h"
 #include "JsVlcInput.h"
 #include "JsVlcAudio.h"
@@ -606,7 +608,9 @@ void* JsVlcPlayer::onFrameSetup(const RV32VideoFrame& videoFrame)
     callCallback(CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat, jsArray });
 
 #ifdef USE_ARRAY_BUFFER
-    return jsArray->Buffer()->GetContents().Data();
+    v8::Local<v8::Object> local;
+    node::Buffer::New(isolate, jsArray->Buffer(), 0, jsArray->Buffer()->ByteLength()).ToLocal(&local);
+    return node::Buffer::Data(local);
 #else
     return jsArray->GetIndexedPropertiesExternalArrayData();
 #endif
@@ -679,7 +683,9 @@ void* JsVlcPlayer::onFrameSetup(const I420VideoFrame& videoFrame)
     callCallback(CB_FrameSetup, { jsWidth, jsHeight, jsPixelFormat, jsArray });
 
 #ifdef USE_ARRAY_BUFFER
-    return jsArray->Buffer()->GetContents().Data();
+    v8::Local<v8::Object> local;
+    node::Buffer::New(isolate, jsArray->Buffer(), 0, jsArray->Buffer()->ByteLength()).ToLocal(&local);
+    return node::Buffer::Data(local);
 #else
     return jsArray->GetIndexedPropertiesExternalArrayData();
 #endif
